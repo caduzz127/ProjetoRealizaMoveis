@@ -1,36 +1,34 @@
 <?php
-// Configuração do banco de dados PostgreSQL
-$host = 'localhost';
-$dbname = 'realizaImoveis';
-$user = 'postgres';
-$password = 'admin';
+/**
+ * PÁGINA DE PRODUTOS - REALIZA MÓVEIS
+ * Lista todos os produtos com filtros e busca
+ */
 
-try {
-    $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Erro na conexão: " . $e->getMessage());
-}
+require_once 'config.php';
 
-// Filtros
-$categoria = isset($_GET['categoria']) ? $_GET['categoria'] : '';
-$marca = isset($_GET['marca']) ? $_GET['marca'] : '';
-$preco_min = isset($_GET['preco_min']) ? $_GET['preco_min'] : '';
-$preco_max = isset($_GET['preco_max']) ? $_GET['preco_max'] : '';
-$cor = isset($_GET['cor']) ? $_GET['cor'] : '';
-$material = isset($_GET['material']) ? $_GET['material'] : '';
-$busca = isset($_GET['busca']) ? $_GET['busca'] : '';
+// ============================================
+// FILTROS
+// ============================================
+$categoria = isset($_GET['categoria']) ? trim($_GET['categoria']) : '';
+$marca = isset($_GET['marca']) ? trim($_GET['marca']) : '';
+$preco_min = isset($_GET['preco_min']) ? floatval($_GET['preco_min']) : '';
+$preco_max = isset($_GET['preco_max']) ? floatval($_GET['preco_max']) : '';
+$cor = isset($_GET['cor']) ? trim($_GET['cor']) : '';
+$material = isset($_GET['material']) ? trim($_GET['material']) : '';
+$busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
 $ordenar = isset($_GET['ordenar']) ? $_GET['ordenar'] : 'destaque';
-$apenas_promocao = isset($_GET['apenas_promocao']) ? $_GET['apenas_promocao'] : '';
-$apenas_destaque = isset($_GET['apenas_destaque']) ? $_GET['apenas_destaque'] : '';
+$apenas_promocao = isset($_GET['apenas_promocao']) ? true : false;
+$apenas_destaque = isset($_GET['apenas_destaque']) ? true : false;
 
-// Construir query com filtros
+// ============================================
+// CONSTRUIR QUERY COM FILTROS
+// ============================================
 $query = "SELECT * FROM produtos WHERE status = 'ativo'";
 $params = [];
 
 if ($categoria) {
-    $query .= " AND categoria = :categoria";
-    $params[':categoria'] = $categoria;
+    $query .= " AND categoria ILIKE :categoria";
+    $params[':categoria'] = "%$categoria%";
 }
 
 if ($marca) {
@@ -71,7 +69,9 @@ if ($apenas_destaque) {
     $query .= " AND destaque = true";
 }
 
-// Ordenação
+// ============================================
+// ORDENAÇÃO
+// ============================================
 switch ($ordenar) {
     case 'menor_preco':
         $query .= " ORDER BY CASE WHEN em_promocao THEN preco_promocional ELSE preco END ASC";
@@ -89,15 +89,44 @@ switch ($ordenar) {
         $query .= " ORDER BY destaque DESC, em_promocao DESC, data_cadastro DESC";
 }
 
-$stmt = $pdo->prepare($query);
-$stmt->execute($params);
-$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// ============================================
+// EXECUTAR QUERY
+// ============================================
+try {
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Formatar todos os produtos com imagens decodificadas
+    $produtos = formatar_produtos($produtos);
+    
+} catch (PDOException $e) {
+    error_log("Erro ao buscar produtos: " . $e->getMessage());
+    $produtos = [];
+}
 
-// Buscar categorias, marcas, cores e materiais disponíveis
-$categorias = $pdo->query("SELECT DISTINCT categoria FROM produtos WHERE status = 'ativo' ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
-$marcas = $pdo->query("SELECT DISTINCT marca FROM produtos WHERE status = 'ativo' ORDER BY marca")->fetchAll(PDO::FETCH_COLUMN);
-$cores = $pdo->query("SELECT DISTINCT cor FROM produtos WHERE status = 'ativo' AND cor IS NOT NULL AND cor != '' ORDER BY cor")->fetchAll(PDO::FETCH_COLUMN);
-$materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 'ativo' AND material IS NOT NULL AND material != '' ORDER BY material")->fetchAll(PDO::FETCH_COLUMN);
+// ============================================
+// BUSCAR FILTROS DISPONÍVEIS
+// ============================================
+try {
+    $categorias = $pdo->query("SELECT DISTINCT categoria FROM produtos WHERE status = 'ativo' ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
+    $marcas = $pdo->query("SELECT DISTINCT marca FROM produtos WHERE status = 'ativo' ORDER BY marca")->fetchAll(PDO::FETCH_COLUMN);
+    $cores = $pdo->query("SELECT DISTINCT cor FROM produtos WHERE status = 'ativo' AND cor IS NOT NULL AND cor != '' ORDER BY cor")->fetchAll(PDO::FETCH_COLUMN);
+    $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 'ativo' AND material IS NOT NULL AND material != '' ORDER BY material")->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    error_log("Erro ao buscar filtros: " . $e->getMessage());
+    $categorias = $marcas = $cores = $materiais = [];
+}
+
+// ============================================
+// RETORNAR JSON PARA AJAX
+// ============================================
+if (isset($_GET['ajax'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($produtos);
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -106,8 +135,10 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos - Realiza Móveis</title>
+    <link rel="icon" type="image/svg+xml" href="assets/imgs/logoModificada.svg">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         .main-content {
             display: flex;
@@ -117,7 +148,6 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             padding: 40px 20px;
         }
 
-        /* SIDEBAR DE FILTROS */
         .sidebar-filtros {
             width: 300px;
             flex-shrink: 0;
@@ -144,35 +174,7 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             gap: 10px;
         }
 
-        .filtro-busca {
-            margin-bottom: 20px;
-        }
-
-        .filtro-busca input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            font-size: 0.95em;
-        }
-
-        .filtro-busca input:focus {
-            outline: none;
-            border-color: var(--gold);
-        }
-
-        .filtro-group {
-            margin-bottom: 20px;
-        }
-
-        .filtro-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--dark);
-            font-size: 0.9em;
-        }
-
+        .filtro-busca input,
         .filtro-group select,
         .filtro-group input {
             width: 100%;
@@ -183,40 +185,11 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             transition: all 0.3s;
         }
 
+        .filtro-busca input:focus,
         .filtro-group select:focus,
         .filtro-group input:focus {
             outline: none;
             border-color: var(--gold);
-        }
-
-        .checkbox-filtro {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-
-        .checkbox-filtro input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .checkbox-filtro label {
-            cursor: pointer;
-            margin: 0;
-            font-size: 0.95em;
-        }
-
-        .preco-range {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .preco-range input {
-            width: 100%;
         }
 
         .btn-filtrar {
@@ -258,35 +231,6 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             background: #5a6268;
         }
 
-        .filtros-ativos {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .filtro-tag {
-            background: var(--gold);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .filtro-tag button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 0;
-            margin-left: 5px;
-        }
-
-        /* CONTEÚDO PRINCIPAL */
         .content-area {
             flex: 1;
         }
@@ -310,26 +254,25 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             margin: 0;
         }
 
-        .resultado-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
         .resultado-count {
             color: #666;
             font-size: 0.95em;
         }
 
-        .ordenar-select {
-            padding: 8px 15px;
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            font-size: 0.9em;
+        .checkbox-filtro {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
             cursor: pointer;
         }
 
-        /* RESPONSIVO */
+        .checkbox-filtro input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
         @media (max-width: 968px) {
             .main-content {
                 flex-direction: column;
@@ -343,39 +286,54 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
     </style>    
 </head>
 <body>
+    <!-- TOP BAR -->
     <div class="top-bar">
-        <div class="top-bar-whatsapp">
-            <a href=""> <img src="assets/imgs/wBranco.svg" alt="Ícone do WhatsApp">WhatsApp +55 21 97977-1368</a>
-        </div>
-        <div class="top-bar-loc">
-            <img src="assets/imgs/locBranco.svg" alt="Ícone de Localização">
-            <a href> Estrada do Cabuçu 3448</a>
+        <div class="top-bar-content">
+            <div class="top-bar-item">
+                <img src="assets/imgs/locBranco.svg" alt="Localização">
+                <a href="#">Estrada do Cabuçu 3448, Rio de Janeiro</a>
+            </div>
+            <div class="top-bar-item">
+                <i class="fas fa-phone"></i>
+                <a href="tel:+5521979771368">(21) 97977-1368</a>
+            </div>
         </div>
     </div>
-    
+
+    <!-- HEADER -->
     <header>
-        <img src="assets/imgs/LogoAchatada.svg" class="logo" alt="Logo Realiza Móveis">
-    </header>
-
-    <nav>
-        <a href="index.php">Início</a>
-        <a href="produtos.php" style="color: var(--gold);">Produtos</a>
-        <a href="#">Sofás</a>
-        <a href="#">Quartos</a>
-        <a href="#">Cozinha</a>
-        <a href="#">Contato</a>
-    </nav>
-
-    <button class="cart-button" id="cartBtn" onclick="window.location.href='cart.html'">
-        <span class="cart-button-icon">Ver Carrinho</span> 
+        <div class="header-container">
+            <div class="header-logo">
+                <img src="assets/imgs/LogoAchatada.svg" class="logo" alt="Logo Realiza Móveis">
+                <div class="header-tagline">Móveis de Qualidade para sua Casa</div>
+            </div>
+            <button class="cart-button" id="cartBtn" onclick="window.location.href='cart.html'">
+        <span class="cart-button-icon">🛒 Ver Carrinho</span>
         <span class="cart-count" id="cartCount">0</span>
     </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <a href="index.php" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span>Início</span>
+        </a>
+        <a href="produtos.php" class="nav-link active">
+            <i class="fas fa-couch"></i>
+            <span>Produtos</span>
+        </a>
+        <a href="https://wa.me/5521979771368" class="nav-link" target="_blank">
+            <i class="fas fa-envelope"></i>
+            <span>Contato</span>
+        </a>
+    </nav>
 
     <div class="main-content">
         <!-- SIDEBAR DE FILTROS -->
         <aside class="sidebar-filtros">
             <form method="GET" id="filtrosForm">
-                <!-- BUSCA -->
                 <div class="filtro-card">
                     <h3>Buscar</h3>
                     <div class="filtro-busca">
@@ -384,14 +342,14 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                     </div>
                 </div>
 
-                <!-- CATEGORIA -->
                 <div class="filtro-card">
                     <h3>Categoria</h3>
                     <div class="filtro-group">
                         <select name="categoria" onchange="this.form.submit()">
                             <option value="">Todas as Categorias</option>
                             <?php foreach ($categorias as $cat): ?>
-                                <option value="<?php echo $cat; ?>" <?php echo $categoria == $cat ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($cat); ?>" 
+                                    <?php echo $categoria == $cat ? 'selected' : ''; ?>>
                                     <?php echo ucfirst($cat); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -399,14 +357,14 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                     </div>
                 </div>
 
-                <!-- MARCA -->
                 <div class="filtro-card">
                     <h3>Marca</h3>
                     <div class="filtro-group">
                         <select name="marca" onchange="this.form.submit()">
                             <option value="">Todas as Marcas</option>
                             <?php foreach ($marcas as $m): ?>
-                                <option value="<?php echo $m; ?>" <?php echo $marca == $m ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($m); ?>" 
+                                    <?php echo $marca == $m ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($m); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -414,7 +372,6 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                     </div>
                 </div>
 
-                <!-- PREÇO -->
                 <div class="filtro-card">
                     <h3>Faixa de Preço</h3>
                     <div class="filtro-group">
@@ -429,7 +386,6 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                     </div>
                 </div>
 
-                <!-- COR -->
                 <?php if (!empty($cores)): ?>
                 <div class="filtro-card">
                     <h3>Cor</h3>
@@ -437,7 +393,8 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                         <select name="cor" onchange="this.form.submit()">
                             <option value="">Todas as Cores</option>
                             <?php foreach ($cores as $c): ?>
-                                <option value="<?php echo $c; ?>" <?php echo $cor == $c ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($c); ?>" 
+                                    <?php echo $cor == $c ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($c); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -446,7 +403,6 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                 </div>
                 <?php endif; ?>
 
-                <!-- MATERIAL -->
                 <?php if (!empty($materiais)): ?>
                 <div class="filtro-card">
                     <h3>Material</h3>
@@ -454,7 +410,8 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                         <select name="material" onchange="this.form.submit()">
                             <option value="">Todos os Materiais</option>
                             <?php foreach ($materiais as $mat): ?>
-                                <option value="<?php echo $mat; ?>" <?php echo $material == $mat ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars($mat); ?>" 
+                                    <?php echo $material == $mat ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($mat); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -463,9 +420,8 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                 </div>
                 <?php endif; ?>
 
-                <!-- ESPECIAIS -->
                 <div class="filtro-card">
-                    <h3> Especiais</h3>
+                    <h3>Especiais</h3>
                     <div class="checkbox-filtro">
                         <input type="checkbox" id="apenas_promocao" name="apenas_promocao" value="1" 
                                <?php echo $apenas_promocao ? 'checked' : ''; ?> onchange="this.form.submit()">
@@ -478,31 +434,19 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                     </div>
                 </div>
 
-                <!-- ORDENAÇÃO -->
                 <div class="filtro-card">
-                    <h3> Ordenar por</h3>
+                    <h3>Ordenar por</h3>
                     <div class="filtro-group">
                         <select name="ordenar" onchange="this.form.submit()">
-                            <option value="destaque" <?php echo $ordenar == 'destaque' ? 'selected' : ''; ?>>
-                                ⭐ Destaques
-                            </option>
-                            <option value="promocao" <?php echo $ordenar == 'promocao' ? 'selected' : ''; ?>>
-                                🔥 Promoções
-                            </option>
-                            <option value="menor_preco" <?php echo $ordenar == 'menor_preco' ? 'selected' : ''; ?>>
-                                💵 Menor Preço
-                            </option>
-                            <option value="maior_preco" <?php echo $ordenar == 'maior_preco' ? 'selected' : ''; ?>>
-                                💰 Maior Preço
-                            </option>
-                            <option value="nome" <?php echo $ordenar == 'nome' ? 'selected' : ''; ?>>
-                                🔤 Nome (A-Z)
-                            </option>
+                            <option value="destaque" <?php echo $ordenar == 'destaque' ? 'selected' : ''; ?>>⭐ Destaques</option>
+                            <option value="promocao" <?php echo $ordenar == 'promocao' ? 'selected' : ''; ?>>🔥 Promoções</option>
+                            <option value="menor_preco" <?php echo $ordenar == 'menor_preco' ? 'selected' : ''; ?>>💵 Menor Preço</option>
+                            <option value="maior_preco" <?php echo $ordenar == 'maior_preco' ? 'selected' : ''; ?>>💰 Maior Preço</option>
+                            <option value="nome" <?php echo $ordenar == 'nome' ? 'selected' : ''; ?>>🔤 Nome (A-Z)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- BOTÕES -->
                 <button type="submit" class="btn-filtrar">Aplicar Filtros</button>
                 <a href="produtos.php" class="btn-limpar" style="text-decoration: none; text-align: center; display: block;">
                     Limpar Filtros
@@ -512,17 +456,13 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
 
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="content-area">
-            <!-- HEADER DE PRODUTOS -->
             <div class="produtos-header">
                 <h2>Nossos Produtos</h2>
-                <div class="resultado-info">
-                    <span class="resultado-count">
-                        <?php echo count($produtos); ?> produto(s) encontrado(s)
-                    </span>
-                </div>
+                <span class="resultado-count">
+                    <?php echo count($produtos); ?> produto(s) encontrado(s)
+                </span>
             </div>
 
-            <!-- GRID DE PRODUTOS -->
             <?php if (empty($produtos)): ?>
                 <div class="sem-produtos">
                     <h3>🔍 Nenhum produto encontrado</h3>
@@ -535,37 +475,35 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                 <div class="produtos-grid">
                     <?php foreach ($produtos as $produto): ?>
                         <div class="produto-card" onclick="window.location.href='produto-detalhes.php?id=<?php echo $produto['id']; ?>'">
-                            
                             <div class="product-badge">
                                 <?php echo $produto['em_promocao'] ? 'Oferta' : htmlspecialchars($produto['categoria']); ?>
                             </div>
 
                             <div class="produto-imagem">
-                                <?php 
-                                $imagens = json_decode($produto['imagens'], true);
-                                if ($imagens && count($imagens) > 0): 
-                                ?>
-                                    <img src="<?php echo $imagens[0]; ?>" alt="<?php echo htmlspecialchars($produto['nome']); ?>">
+                                <?php if (!empty($produto['primeira_imagem'])): ?>
+                                    <img src="<?php echo htmlspecialchars($produto['primeira_imagem']); ?>" 
+                                         alt="<?php echo htmlspecialchars($produto['nome']); ?>"
+                                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%23ccc%22%3ESem imagem%3C/text%3E%3C/svg%3E'">
                                 <?php else: ?>
-                                    <div style="color: #ccc;">Sem imagem</div>
+                                    <div style="color: #ccc; display: flex; align-items: center; justify-content: center; height: 100%;">
+                                        Sem imagem
+                                    </div>
                                 <?php endif; ?>
                             </div>
 
                             <div class="produto-conteudo">
                                 <span class="product-category"><?php echo htmlspecialchars($produto['marca']); ?></span>
-                                
                                 <h3 class="produto-titulo"><?php echo htmlspecialchars($produto['nome']); ?></h3>
-
                                 <p class="produto-descricao">
                                     <?php echo mb_strimwidth(htmlspecialchars($produto['descricao']), 0, 100, "..."); ?>
                                 </p>
 
                                 <div class="produto-preco-container">
                                     <?php if ($produto['em_promocao']): ?>
-                                        <span class="preco-atual">R$ <?php echo number_format($produto['preco_promocional'], 2, ',', '.'); ?></span>
-                                        <span class="preco-original-riscado">R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?></span>
+                                        <span class="preco-atual">R$ <?php echo formatar_preco($produto['preco_promocional']); ?></span>
+                                        <span class="preco-original-riscado">R$ <?php echo formatar_preco($produto['preco']); ?></span>
                                     <?php else: ?>
-                                        <span class="preco-atual">R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?></span>
+                                        <span class="preco-atual">R$ <?php echo formatar_preco($produto['preco']); ?></span>
                                     <?php endif; ?>
                                 </div>
 
@@ -606,9 +544,7 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
                 <h3>Contato</h3>
                 <div class="footer-contact">
                     <span>📍</span>
-                    <div>
-                        <div>Estrada do Cabuçu 3448</div>
-                    </div>
+                    <div>Estrada do Cabuçu 3448</div>
                 </div>
                 <div class="footer-contact">
                     <span>📞</span>
@@ -623,14 +559,14 @@ $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 
             <div class="footer-section">
                 <h3>Redes Sociais</h3>
                 <div class="social-links">
-                    <a href="https://www.instagram.com/realizasonhomoveis?igsh=YmF1NXFiaTNjeWM4&utm_source=qr" target="_blank" title="Instagram">
+                    <a href="https://www.instagram.com/realizasonhomoveis" target="_blank" title="Instagram">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                             <circle cx="17.5" cy="6.5" r="1.5"></circle>
                         </svg>
                     </a>
-                    <a href="https://wa.me/message/DGFVY3FNTHA5B1" target="_blank" title="WhatsApp">
+                    <a href="https://wa.me/5521979771368" target="_blank" title="WhatsApp">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>

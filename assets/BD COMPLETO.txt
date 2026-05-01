@@ -1,0 +1,44 @@
+CREATE TABLE IF NOT EXISTS produtos (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(200) NOT NULL,
+    descricao TEXT NOT NULL,
+    categoria VARCHAR(50) NOT NULL,
+    marca VARCHAR(100) NOT NULL,
+    modelo VARCHAR(100),
+    cor VARCHAR(50) NOT NULL,
+    cor_hex VARCHAR(7), -- novo campo para cor em hexadecimal
+    material VARCHAR(100) NOT NULL,
+    dimensoes VARCHAR(100) NOT NULL,
+    peso DECIMAL(10, 2),
+    preco DECIMAL(12, 2) NOT NULL,
+    preco_promocional DECIMAL(12, 2),
+    em_promocao BOOLEAN DEFAULT FALSE,
+    desconto_percentual DECIMAL(5, 2) DEFAULT 0,
+    estoque INTEGER NOT NULL DEFAULT 0,
+    estoque_minimo INTEGER NOT NULL DEFAULT 0,
+    sku VARCHAR(50) UNIQUE NOT NULL,
+    imagem_principal TEXT,
+);
+
+-- Criar índices para melhorar a performance
+CREATE INDEX idx_produtos_categoria ON produtos(categoria);
+CREATE INDEX idx_produtos_marca ON produtos(marca);
+CREATE INDEX idx_produtos_status ON produtos(status);
+CREATE INDEX idx_produtos_em_promocao ON produtos(em_promocao);
+CREATE INDEX idx_produtos_destaque ON produtos(destaque);
+CREATE INDEX idx_produtos_preco ON produtos(preco);
+CREATE INDEX idx_produtos_sku ON produtos(sku);
+ 
+-- Criar trigger para atualizar data_atualizacao automaticamente
+CREATE OR REPLACE FUNCTION atualizar_data_atualizacao()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.data_atualizacao = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE TRIGGER trigger_atualizar_data_atualizacao
+    BEFORE UPDATE ON produtos
+    FOR EACH ROW
+    EXECUTE FUNCTION atualizar_data_atualizacao();

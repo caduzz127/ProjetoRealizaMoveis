@@ -1,18 +1,20 @@
 document.addEventListener("click", function(event) {
 
-    const card = event.target.closest(".sessao-card");
+    const card = event.target.closest(".room-card");
 
     if (card) {
-        if (card.id === "guardaRoupaCard") {
-            window.location.href = "guardaRoupa.html";
+        if (card.id === "guarda-roupa") {
+            window.location.href = "guarda-roupa.php";
         }
 
-        if (card.id === "mesaEstarCard") {
-            window.location.href = "mesaEstar.html";
+        if (card.id === "sofas-e-mesas") {
+             window.location.href = "sofa.php";
         }
-
-        if (card.id === "sofaCard") {
-            window.location.href = "../sofa.html";
+        if (card.id === "escrivaninha") {
+            window.location.href = "escrivaninha.php";
+        }
+        if (card.id === "mesa-de-jantar") {
+            window.location.href = "mesa.php";
         }
     }
 });

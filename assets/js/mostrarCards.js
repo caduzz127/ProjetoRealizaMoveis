@@ -1,3 +1,9 @@
+window.onpageshow = function(event) {
+    if (event.persisted) {
+        location.reload();
+    }
+};
+
 const btnVerMais = document.getElementById("btnVerMais");
 const btnVerMenos = document.getElementById("btnVerMenos");
 

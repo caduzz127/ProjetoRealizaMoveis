@@ -3,45 +3,139 @@ session_start();
 
 // Configuração do banco de dados PostgreSQL
 $host = 'localhost';
-$dbname = 'realizaImoveis';
+$dbname = 'realizaMoveis';
 $user = 'postgres';
 $password = 'admin';
 
-try {
-    $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erro na conexão: " . $e->getMessage());
+require_once 'config.php'; // Ideal colocar as configs do Supabase aqui também
+
+// ==========================================
+// CONFIGURAÇÕES DO SUPABASE
+// ==========================================
+define('SUPABASE_URL', 'https://gmjdsvjedcvdvwfganxi.supabase.co'); 
+// Dica: Use a SERVICE_ROLE KEY para o painel ADM, pois ela ignora as políticas RLS (Row Level Security)
+define('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtamRzdmplZGN2ZHZ3ZmdhbnhpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzM1MjgzNSwiZXhwIjoyMDkyOTI4ODM1fQ.8ug0Q9w32_a4QY5fYAHwYpchxvu6t6M-vlcmPKDsbD4'); 
+define('SUPABASE_BUCKET', 'produtos-imagens');
+
+/**
+ * Faz o upload de um arquivo para o Supabase Storage e retorna a URL pública.
+ */
+function uploadToSupabase($tmpPath, $fileName, $mimeType) {
+    // Limpa o nome do arquivo para evitar problemas de URL
+    $cleanFileName = preg_replace('/[^A-Za-z0-9.\-_]/', '', $fileName);
+    $url = SUPABASE_URL . "/storage/v1/object/" . SUPABASE_BUCKET . "/" . $cleanFileName;
+    
+    $fileData = file_get_contents($tmpPath);
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fileData);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . SUPABASE_KEY,
+        "apikey: " . SUPABASE_KEY,
+        "Content-Type: " . $mimeType
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        return SUPABASE_URL . "/storage/v1/object/public/" . SUPABASE_BUCKET . "/" . $cleanFileName;
+    }
+    return false;
 }
+
+/**
+ * Remove um arquivo do Supabase Storage baseado na sua URL pública.
+ */
+function deleteFromSupabase($fileUrl) {
+    $prefix = SUPABASE_URL . "/storage/v1/object/public/" . SUPABASE_BUCKET . "/";
+    // Verifica se a string realmente é uma URL do nosso bucket
+    if (strpos($fileUrl, $prefix) === 0) {
+        $fileName = str_replace($prefix, '', $fileUrl);
+        $url = SUPABASE_URL . "/storage/v1/object/" . SUPABASE_BUCKET . "/" . $fileName;
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . SUPABASE_KEY,
+            "apikey: " . SUPABASE_KEY
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+    }
+}
+// ==========================================
+
 
 $mensagem = '';
 $tipo_mensagem = '';
 
 // Processar ações (cadastrar, editar, excluir)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    
+
     if ($_POST['action'] === 'cadastrar' || $_POST['action'] === 'editar') {
         try {
-            // Upload de imagens
             $imagens = [];
             
-            // Se for edição, manter imagens existentes
+            // Se for edição, manter imagens existentes (secundárias)
             if ($_POST['action'] === 'editar' && isset($_POST['imagens_existentes'])) {
-                $imagens = json_decode($_POST['imagens_existentes'], true);
+                $imagens = json_decode($_POST['imagens_existentes'], true) ?: [];
             }
-            
-            if (isset($_FILES['imagens'])) {
-                $upload_dir = 'uploads/produtos/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
 
-                foreach ($_FILES['imagens']['tmp_name'] as $key => $tmp_name) {
-                    if ($_FILES['imagens']['error'][$key] === 0) {
-                        $filename = uniqid() . '_' . $_FILES['imagens']['name'][$key];
-                        $filepath = $upload_dir . $filename;
-                        if (move_uploaded_file($tmp_name, $filepath)) {
-                            $imagens[] = $filepath;
+            $imagem_principal = null;
+
+            // Upload da nova imagem principal para o Supabase
+            if (isset($_FILES['imagem_principal']) && $_FILES['imagem_principal']['error'] === 0) {
+                $filename = uniqid() . '_' . $_FILES['imagem_principal']['name'];
+                $mime = $_FILES['imagem_principal']['type'];
+                
+                $publicUrl = uploadToSupabase($_FILES['imagem_principal']['tmp_name'], $filename, $mime);
+                if ($publicUrl) {
+                    $imagem_principal = $publicUrl;
+                }
+            }
+
+            // Se for edição e não enviou nova imagem principal, manter a existente
+            if ($_POST['action'] === 'editar' && empty($imagem_principal) && isset($_POST['imagem_principal_existente'])) {
+                $imagem_principal = $_POST['imagem_principal_existente'];
+            }
+
+            // Se pediu remoção da imagem principal ao editar
+            if ($_POST['action'] === 'editar' && isset($_POST['remover_imagem_principal']) && !empty($_POST['imagem_principal_existente'])) {
+                $toDel = $_POST['imagem_principal_existente'];
+                deleteFromSupabase($toDel);
+                $imagem_principal = null;
+            }
+
+            // Iniciar com imagens existentes (se houver)
+            $imagens_secundarias = $imagens;
+
+            // Se estiver editando, remover imagens secundárias marcadas para exclusão
+            if ($_POST['action'] === 'editar' && isset($_POST['remover_imagens_secundarias']) && is_array($_POST['remover_imagens_secundarias'])) {
+                foreach ($_POST['remover_imagens_secundarias'] as $rem) {
+                    $rem = trim($rem);
+                    $idx = array_search($rem, $imagens_secundarias);
+                    if ($idx !== false) {
+                        deleteFromSupabase($rem);
+                        array_splice($imagens_secundarias, $idx, 1);
+                    }
+                }
+            }
+
+            // Upload de novas imagens secundárias para o Supabase
+            if (isset($_FILES['imagens_secundarias'])) {
+                foreach ($_FILES['imagens_secundarias']['tmp_name'] as $key => $tmp_name) {
+                    if ($_FILES['imagens_secundarias']['error'][$key] === 0) {
+                        $filename = uniqid() . '_' . $_FILES['imagens_secundarias']['name'][$key];
+                        $mime = $_FILES['imagens_secundarias']['type'][$key];
+                        
+                        $publicUrl = uploadToSupabase($tmp_name, $filename, $mime);
+                        if ($publicUrl) {
+                            $imagens_secundarias[] = $publicUrl;
                         }
                     }
                 }
@@ -54,32 +148,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $destaque = isset($_POST['destaque']) ? 1 : 0;
 
             if ($_POST['action'] === 'cadastrar') {
-                $stmt = $pdo->prepare("
-                    INSERT INTO produtos (
+                $insertSql = "INSERT INTO produtos (
                         nome, descricao, categoria, marca, modelo,
-                        cor, material, dimensoes, peso,
+                        cor, cor_hex, material, dimensoes, peso,
                         preco, preco_promocional, em_promocao, desconto_percentual,
                         estoque, estoque_minimo, sku,
-                        imagens, status, destaque, data_cadastro
+                        imagem_principal, imagem_secundarias, status, destaque, data_cadastro
                     ) VALUES (
                         :nome, :descricao, :categoria, :marca, :modelo,
-                        :cor, :material, :dimensoes, :peso,
+                        :cor, :cor_hex, :material, :dimensoes, :peso,
                         :preco, :preco_promocional, :em_promocao, :desconto_percentual,
                         :estoque, :estoque_minimo, :sku,
-                        :imagens, :status, :destaque, NOW()
-                    )
-                ");
+                        :imagem_principal, :imagem_secundarias, :status, :destaque, NOW()
+                    )";
                 $mensagem = "Produto cadastrado com sucesso!";
             } else {
                 $stmt = $pdo->prepare("
                     UPDATE produtos SET
                         nome = :nome, descricao = :descricao, categoria = :categoria, 
-                        marca = :marca, modelo = :modelo, cor = :cor, material = :material,
+                        marca = :marca, modelo = :modelo, cor = :cor, cor_hex = :cor_hex, material = :material,
                         dimensoes = :dimensoes, peso = :peso, preco = :preco,
                         preco_promocional = :preco_promocional, em_promocao = :em_promocao,
                         desconto_percentual = :desconto_percentual, estoque = :estoque,
                         estoque_minimo = :estoque_minimo, sku = :sku,
-                        imagens = :imagens, status = :status, destaque = :destaque
+                        imagem_principal = :imagem_principal, imagem_secundarias = :imagem_secundarias, status = :status, destaque = :destaque
                     WHERE id = :id
                 ");
                 $mensagem = "Produto atualizado com sucesso!";
@@ -92,6 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 ':marca' => $_POST['marca'],
                 ':modelo' => $_POST['modelo'],
                 ':cor' => $_POST['cor'],
+                ':cor_hex' => $_POST['cor_hex'],
                 ':material' => $_POST['material'],
                 ':dimensoes' => $_POST['dimensoes'],
                 ':peso' => $_POST['peso'],
@@ -102,42 +195,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 ':estoque' => $_POST['estoque'],
                 ':estoque_minimo' => $_POST['estoque_minimo'],
                 ':sku' => $_POST['sku'],
-                ':imagens' => json_encode($imagens),
+                ':imagem_principal' => $imagem_principal,
+                ':imagem_secundarias' => json_encode($imagens_secundarias),
                 ':status' => $_POST['status'],
                 ':destaque' => $destaque
             ];
 
             if ($_POST['action'] === 'editar') {
                 $params[':id'] = $_POST['produto_id'];
+                $stmt->execute($params);
+            } else {
+                // Cadastro: suportar múltiplas cores/variantes enviadas em cores[]
+                if (isset($_POST['cores']) && is_array($_POST['cores']) && count($_POST['cores']) > 0) {
+                    
+                    $coresPost = $_POST['cores'];
+                    $filesCores = isset($_FILES['cores']) ? $_FILES['cores'] : null;
+
+                    // Primeiro, inserir a cor principal
+                    $insertStmt = $pdo->prepare($insertSql);
+
+                    $main_cor = isset($_POST['cor']) ? $_POST['cor'] : '';
+                    $main_cor_hex = isset($_POST['cor_hex']) ? $_POST['cor_hex'] : '';
+                    $baseSku = isset($_POST['sku']) ? $_POST['sku'] : 'SKU';
+                    $sufmain = preg_replace('/[^A-Za-z0-9]/', '', strtoupper(substr($main_cor,0,6)));
+                    $candidateMain = $baseSku . '-' . ($sufmain ?: uniqid());
+                    $counterMain = 1;
+                    
+                    while ($pdo->query("SELECT 1 FROM produtos WHERE sku = '" . addslashes($candidateMain) . "'")->fetch()) {
+                        $candidateMain = $baseSku . '-' . ($sufmain ?: 'M') . $counterMain;
+                        $counterMain++;
+                    }
+                    
+                    $paramsMain = $params; // Copia os parâmetros originais
+                    $paramsMain[':sku'] = $candidateMain;
+                    $paramsMain[':cor'] = $main_cor;
+                    $paramsMain[':cor_hex'] = $main_cor_hex;
+                    
+                    $insertStmt->execute($paramsMain);
+
+                    foreach ($coresPost as $i => $coreData) {
+                        $cor_val = isset($coreData['cor']) ? $coreData['cor'] : '';
+                        $cor_hex_val = isset($coreData['cor-hex']) ? $coreData['cor-hex'] : '';
+
+                        // Upload principal da variante para o Supabase
+                        $var_img_principal = null;
+                        if ($filesCores && isset($filesCores['error'][$i]['imagem']) && $filesCores['error'][$i]['imagem'] === 0) {
+                            $origName = $filesCores['name'][$i]['imagem'];
+                            $tmpName = $filesCores['tmp_name'][$i]['imagem'];
+                            $mime = $filesCores['type'][$i]['imagem'];
+                            $filename = uniqid() . '_' . $origName;
+                            
+                            $publicUrl = uploadToSupabase($tmpName, $filename, $mime);
+                            if ($publicUrl) $var_img_principal = $publicUrl;
+                        }
+
+                        // Upload imagens secundárias da variante para o Supabase
+                        $var_imagens_sec = [];
+                        if ($filesCores && isset($filesCores['name'][$i]['imagens_secundarias']) && is_array($filesCores['name'][$i]['imagens_secundarias'])) {
+                            foreach ($filesCores['name'][$i]['imagens_secundarias'] as $k => $nameSec) {
+                                if ($filesCores['error'][$i]['imagens_secundarias'][$k] === 0) {
+                                    $tmp = $filesCores['tmp_name'][$i]['imagens_secundarias'][$k];
+                                    $mime = $filesCores['type'][$i]['imagens_secundarias'][$k];
+                                    $filename = uniqid() . '_' . $nameSec;
+                                    
+                                    $publicUrl = uploadToSupabase($tmp, $filename, $mime);
+                                    if ($publicUrl) $var_imagens_sec[] = $publicUrl;
+                                }
+                            }
+                        }
+
+                        // SKU variante
+                        $suf = preg_replace('/[^A-Za-z0-9]/', '', strtoupper(substr($cor_val,0,6)));
+                        $candidate = $baseSku . '-' . ($suf ?: uniqid());
+                        $counter = 1;
+                        while ($pdo->query("SELECT 1 FROM produtos WHERE sku = '" . addslashes($candidate) . "'")->fetch()) {
+                            $candidate = $baseSku . '-' . ($suf ?: 'V') . $counter;
+                            $counter++;
+                        }
+
+                        $paramsVar = [
+                            ':nome' => $_POST['nome'],
+                            ':descricao' => $_POST['descricao'],
+                            ':categoria' => $_POST['categoria'],
+                            ':marca' => $_POST['marca'],
+                            ':modelo' => $_POST['modelo'],
+                            ':cor' => $cor_val,
+                            ':cor_hex' => $cor_hex_val,
+                            ':material' => $_POST['material'],
+                            ':dimensoes' => $_POST['dimensoes'],
+                            ':peso' => $_POST['peso'],
+                            ':preco' => $preco,
+                            ':preco_promocional' => $preco_promocional,
+                            ':em_promocao' => $em_promocao,
+                            ':desconto_percentual' => $desconto,
+                            ':estoque' => $_POST['estoque'],
+                            ':estoque_minimo' => $_POST['estoque_minimo'],
+                            ':sku' => $candidate,
+                            ':imagem_principal' => $var_img_principal,
+                            ':imagem_secundarias' => json_encode($var_imagens_sec),
+                            ':status' => $_POST['status'],
+                            ':destaque' => $destaque
+                        ];
+
+                        $insertStmt->execute($paramsVar);
+                    }
+
+                } else {
+                    $stmt = $pdo->prepare($insertSql);
+                    $stmt->execute($params);
+                }
             }
 
-            $stmt->execute($params);
-            $tipo_mensagem = "sucesso";
+            $_SESSION['feedback'] = [
+                'texto' => ($_POST['action'] === 'cadastrar') ? "Produto cadastrado com sucesso!" : "Produto atualizado com sucesso!",
+                'tipo' => 'sucesso'
+            ];
+
+            header("Location: TelaAdm.php");
+            exit;
         } catch (PDOException $e) {
             $mensagem = "Erro ao processar: " . $e->getMessage();
             $tipo_mensagem = "erro";
         }
     } elseif ($_POST['action'] === 'excluir') {
         try {
+            // (Opcional) Buscar o produto antes para apagar as imagens do bucket do Supabase
+            $stmtImg = $pdo->prepare("SELECT imagem_principal, imagem_secundarias FROM produtos WHERE id = :id");
+            $stmtImg->execute([':id' => $_POST['produto_id']]);
+            $prodExcluir = $stmtImg->fetch(PDO::FETCH_ASSOC);
+
+            if ($prodExcluir) {
+                if ($prodExcluir['imagem_principal']) deleteFromSupabase($prodExcluir['imagem_principal']);
+                $sec = json_decode($prodExcluir['imagem_secundarias'], true);
+                if (is_array($sec)) {
+                    foreach ($sec as $img) deleteFromSupabase($img);
+                }
+            }
+
+            // Excluir registro do banco
             $stmt = $pdo->prepare("DELETE FROM produtos WHERE id = :id");
             $stmt->execute([':id' => $_POST['produto_id']]);
+            
             $mensagem = "Produto excluído com sucesso!";
             $tipo_mensagem = "sucesso";
         } catch (PDOException $e) {
             $mensagem = "Erro ao excluir: " . $e->getMessage();
             $tipo_mensagem = "erro";
         }
-    }
-    if ($stmt->execute($params)) {
-        // Em vez de apenas definir $mensagem, salve na sessão
-        $_SESSION['feedback'] = [
-            'texto' => ($_POST['action'] === 'cadastrar') ? "Produto cadastrado com sucesso!" : "Produto atualizado com sucesso!",
-            'tipo' => 'sucesso'
-        ];
-        
-        // REDIRECIONAMENTO: Limpa o POST do navegador
-        header("Location: TelaAdm.php"); 
-        exit;
     }
 }
 
@@ -159,8 +363,87 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Realiza Móveis</title>
+    <link rel="icon" type="image/svg+xml" href="assets/imgs/logoModificada.svg">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
+    <script>const produtoEdicao = <?php echo json_encode($produto_edicao); ?>;</script>
+    <script src="assets/js/cores.js" defer></script>
+    <script>
+        // Pré-visualização de imagens no formulário
+        document.addEventListener('DOMContentLoaded', function(){
+            const inpPrincipal = document.getElementById('imagem_principal');
+            const previewPrincipal = document.getElementById('preview_principal');
+            const inpSec = document.getElementById('imagens_secundarias');
+            const previewSec = document.getElementById('preview_secundarias');
+
+            if (inpPrincipal) {
+                inpPrincipal.addEventListener('change', function(){
+                    const file = this.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e){
+                        previewPrincipal.innerHTML = '<div>Imagem selecionada:</div><img src="'+e.target.result+'" style="max-width:150px; margin-top:8px; border-radius:6px;">';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            if (inpSec) {
+                inpSec.addEventListener('change', function(){
+                    previewSec.innerHTML = '';
+                    Array.from(this.files).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function(e){
+                            const div = document.createElement('div');
+                            div.style.textAlign = 'center';
+                            div.innerHTML = '<img src="'+e.target.result+'" style="max-width:120px; border-radius:6px; display:block;">';
+                            previewSec.appendChild(div);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            }
+            
+            // Delegation para botões de exclusão de imagem (principal e secundárias)
+            // Clique apenas marca/desmarca a imagem para remoção; a exclusão real ocorre ao submeter o formulário
+            document.body.addEventListener('click', function(e){
+                if (e.target.classList.contains('delete-img')) {
+                    const btn = e.target;
+                    const tipo = btn.getAttribute('data-tipo');
+                    const imagem = btn.getAttribute('data-imagem');
+                    const wrapper = btn.closest('.img-wrapper');
+                    const form = document.querySelector('form');
+                    if (!wrapper || !form) return;
+
+                    if (wrapper.classList.contains('marked-delete')) {
+                        // desmarcar
+                        wrapper.classList.remove('marked-delete');
+                        // remover input hidden correspondente
+                        if (tipo === 'principal') {
+                            const inp = form.querySelector('input[name="remover_imagem_principal"]');
+                            if (inp) inp.remove();
+                        } else {
+                            form.querySelectorAll('input[name="remover_imagens_secundarias[]"]').forEach(i => { if (i.value === imagem) i.remove(); });
+                        }
+                        // restaurar visual
+                        const img = wrapper.querySelector('img'); if (img) img.style.opacity = '1';
+                        btn.textContent = '✖';
+                    } else {
+                        // marcar para remoção
+                        wrapper.classList.add('marked-delete');
+                        if (tipo === 'principal') {
+                            const inp = document.createElement('input'); inp.type = 'hidden'; inp.name = 'remover_imagem_principal'; inp.value = '1'; form.appendChild(inp);
+                        } else {
+                            const inp = document.createElement('input'); inp.type = 'hidden'; inp.name = 'remover_imagens_secundarias[]'; inp.value = imagem; form.appendChild(inp);
+                        }
+                        // visual de marcado
+                        const img = wrapper.querySelector('img'); if (img) img.style.opacity = '0.35';
+                        btn.textContent = '✔';
+                    }
+                }
+            });
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -177,6 +460,32 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
             --cinza-claro: #F5F5F5;
             --cinza: #E0E0E0;
         }
+
+        /* Imagem wrapper e estado marcado para remoção */
+        .img-wrapper { position: relative; display: inline-block; }
+        .img-wrapper .delete-img {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.08);
+            background: #fff;
+            color: #e74c3c;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            transition: transform .12s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+        }
+        .img-wrapper .delete-img:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 26px rgba(0,0,0,0.16); }
+        .img-wrapper.marked-delete { outline: 3px solid rgba(76,175,80,0.12); border-radius: 8px; }
+        .img-wrapper.marked-delete img { opacity: 0.35; filter: grayscale(20%); }
+        .img-wrapper.marked-delete .delete-img { background: #4CAF50; color: #fff; border-color: rgba(0,0,0,0.05); }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -276,6 +585,7 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
         .form-group {
             display: flex;
             flex-direction: column;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -286,6 +596,7 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
         }
 
         .form-group input,
+        
         .form-group select,
         .form-group textarea {
             padding: 12px 15px;
@@ -427,6 +738,15 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
+        .produtos-lista .cards-grid {
+            display: grid;
+            /* use auto-fit so columns expand to fill available space; increase min width so single cards stretch */
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 20px;
+            align-items: start;
+            justify-items: stretch;
+        }
+
         .produtos-lista h2 {
             color: var(--dourado-escuro);
             margin-bottom: 30px;
@@ -437,11 +757,14 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
 
         .produto-card {
             background: var(--cinza-claro);
-            padding: 25px;
+            padding: 28px 30px;
             border-radius: 12px;
-            margin-bottom: 20px;
+            /* remove margin-bottom to let grid control spacing */
+            margin-bottom: 0;
             border-left: 5px solid var(--dourado);
             transition: all 0.3s;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .produto-card:hover {
@@ -522,30 +845,18 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
             display: flex;
             gap: 10px;
         }
+        .form-group-inputs {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
     <!-- Header da Loja -->
-    <div class="top-bar">
-        <div class="top-bar-whatsapp">
-            <a href=""> <img src="assets/imgs/wBranco.svg" alt="Ícone do WhatsApp">WhatsApp +55 21 97977-1368</a>
-        </div>
-        <div class="top-bar-loc">
-            <img src="assets/imgs/locBranco.svg" alt="Ícone de Localização">
-            <a href> Estrada do Cabuçu 3448</a>
-        </div>
-    </div>
-    
     <header>
         <img src="assets/imgs/LogoAchatada.svg" class="logo" alt="Logo Realiza Móveis">
     </header>
-
-    <nav>
-        <a href="index.php">Início</a>
-        <a href="produtos.php">Produtos</a>
-        <a href="TelaAdm.php" style="color: var(--gold);">Administração</a>
-        <a href="#">Contato</a>
-    </nav>
 
     <!-- Container Administrativo -->
     <div class="admin-container">
@@ -555,9 +866,9 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="mensagem <?php echo $tipo_mensagem; ?>">
-                <?php echo $mensagem; ?>
-            </div>
+                                                    <div class="mensagem <?php echo $tipo_mensagem; ?>">
+                                                        <?php echo $mensagem; ?>
+                                                    </div>
         <?php endif; ?>
 
         <!-- Formulário de Cadastro/Edição -->
@@ -568,7 +879,8 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                 <input type="hidden" name="action" value="<?php echo $produto_edicao ? 'editar' : 'cadastrar'; ?>">
                 <?php if ($produto_edicao): ?>
                     <input type="hidden" name="produto_id" value="<?php echo $produto_edicao['id']; ?>">
-                    <input type="hidden" name="imagens_existentes" value="<?php echo htmlspecialchars($produto_edicao['imagens']); ?>">
+                    <input type="hidden" name="imagens_existentes" value="<?php echo htmlspecialchars($produto_edicao['imagem_secundarias']); ?>">
+                    <input type="hidden" name="imagem_principal_existente" value="<?php echo htmlspecialchars($produto_edicao['imagem_principal']); ?>">
                 <?php endif; ?>
 
                 <!-- INFORMAÇÕES BÁSICAS -->
@@ -635,11 +947,15 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                 <h3 style="color: var(--dourado-escuro); margin-bottom: 15px;">Características Físicas</h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="cor">Cor</label>
-                        <input type="text" id="cor" name="cor" 
-                               value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['cor']) : ''; ?>">
+                        <label for="cor">Cor Principal</label>
+                        <div class="form-group-inputs">
+                            <input type="text" id="cor" name="cor" 
+                                value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['cor']) : ''; ?>">
+                            <input type="color" name="cor_hex" style="width: 50px; height: 30px; padding: 0; border-radius: 10px; margin-top:10px;">
+                        </div>
                     </div>
-
+                    
+                    
                     <div class="form-group">
                         <label for="material">Material</label>
                         <input type="text" id="material" name="material" 
@@ -664,13 +980,44 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                 <!-- IMAGENS -->
                 <h3 style="color: var(--dourado-escuro); margin-bottom: 15px;">Imagens</h3>
                 <div class="form-group">
-                    <label for="imagens">Upload de Imagens <?php echo $produto_edicao ? '(deixe em branco para manter as existentes)' : '*'; ?></label>
-                    <input type="file" id="imagens" name="imagens[]" multiple accept="image/*" 
-                           <?php echo !$produto_edicao ? 'required' : ''; ?>>
-                    <small style="color: #666;">Você pode selecionar múltiplas imagens</small>
-                </div>
+                    <label for="imagem_principal">
+                        Upload de Imagem (Selecione a imagem principal do produto) <?php echo $produto_edicao ? '(deixe em branco para manter a existente)' : '*'; ?>
+                    </label>
+                    
+                    <input type="file" id="imagem_principal" name="imagem_principal" accept="image/*"
+                        <?php echo !$produto_edicao ? 'required' : ''; ?>>
 
-                <div class="section-divider"></div>
+                    <small style="color: #666;">Selecione apenas uma imagem</small>
+                    <div id="preview_principal" style="margin-top:10px;">
+                        <?php if ($produto_edicao && !empty($produto_edicao['imagem_principal'])): ?>
+                            <div>Imagem atual:</div>
+                            <div class="img-wrapper" data-imagem="<?php echo htmlspecialchars($produto_edicao['imagem_principal'], ENT_QUOTES); ?>" style="position:relative; display:inline-block;">
+                                <img src="<?php echo htmlspecialchars($produto_edicao['imagem_principal']); ?>" alt="Principal" style="max-width:150px; margin-top:8px; border-radius:6px; display:block;">
+                                <button type="button" class="delete-img" data-tipo="principal" data-imagem="<?php echo htmlspecialchars($produto_edicao['imagem_principal'], ENT_QUOTES); ?>" aria-label="Marcar para remoção" title="Marcar para remoção" style="position:absolute; top:6px; right:6px; background:rgba(231,76,60,0.95); color:#fff; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; line-height:24px;">✖</button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="imagens_secundarias">
+                        Upload de Imagens (As Demais imagens)
+                    </label>
+                    
+                    <input type="file" id="imagens_secundarias" name="imagens_secundarias[]" multiple accept="image/*">
+
+                    <small style="color: #666;">Você pode selecionar várias imagens</small>
+                    <div id="preview_secundarias" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <?php if ($produto_edicao && !empty($produto_edicao['imagem_secundarias'])):
+                            $sec = json_decode($produto_edicao['imagem_secundarias'], true) ?: [];
+                            foreach ($sec as $s): ?>
+                                <div class="img-wrapper" data-imagem="<?php echo htmlspecialchars($s, ENT_QUOTES); ?>" style="text-align:center; position:relative; display:inline-block; margin-right:8px;">
+                                    <img src="<?php echo htmlspecialchars($s); ?>" style="max-width:120px; border-radius:6px; display:block;">
+                                    <button type="button" class="delete-img" data-tipo="secundaria" data-imagem="<?php echo htmlspecialchars($s, ENT_QUOTES); ?>" aria-label="Marcar para remoção" title="Marcar para remoção" style="position:absolute; top:6px; right:6px; background:rgba(231,76,60,0.95); color:#fff; border:none; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:14px; line-height:22px;">✖</button>
+                                </div>
+                            <?php endforeach;
+                        endif; ?>
+                    </div>
+                    </div>                  
 
                 <!-- ESTOQUE -->
                 <h3 style="color: var(--dourado-escuro); margin-bottom: 15px;">Controle de Estoque</h3>
@@ -752,9 +1099,9 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                         <?php echo $produto_edicao ? '💾 Salvar Alterações' : ' Cadastrar Produto'; ?>
                     </button>
                     <?php if ($produto_edicao): ?>
-                        <a href="TelaAdm.php" class="btn btn-secondary" style="text-decoration: none; display: inline-block;">
-                            ❌ Cancelar
-                        </a>
+                                                                <a href="TelaAdm.php" class="btn btn-secondary" style="text-decoration: none; display: inline-block;">
+                                                                    ❌ Cancelar
+                                                                </a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -764,95 +1111,97 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
         <div class="produtos-lista">
             <h2> Produtos Cadastrados (<?php echo count($produtos); ?>)</h2>
             <?php if (empty($produtos)): ?>
-                <p style="text-align: center; color: #999; padding: 40px;">
-                    Nenhum produto cadastrado ainda.
-                </p>
-            <?php else: ?>
-                <?php foreach ($produtos as $produto): ?>
-                    <div class="produto-card">
-                        <h3>
-                            <?php echo htmlspecialchars($produto['nome']); ?>
+                                                            <p style="text-align: center; color: #999; padding: 40px;">
+                                                                Nenhum produto cadastrado ainda.
+                                                            </p>
+                <?php else: ?>
+                    <div class="cards-grid">
+                        <?php foreach ($produtos as $produto): ?>
+                            <div class="produto-card">
+                                                                                                        <h3>
+                                                                                                            <?php echo htmlspecialchars($produto['nome']); ?>
                     
-                            <?php if ($produto['destaque']): ?>
-                                <span class="badge destaque">⭐ DESTAQUE</span>
-                            <?php endif; ?>
+                                                                                                            <?php if ($produto['destaque']): ?>
+                                                                                                                                                        <span class="badge destaque">⭐ DESTAQUE</span>
+                                                                                                            <?php endif; ?>
                     
-                            <?php if ($produto['em_promocao']): ?>
-                                <span class="badge promocao">🔥 PROMOÇÃO</span>
-                            <?php endif; ?>
+                                                                                                            <?php if ($produto['em_promocao']): ?>
+                                                                                                                                                        <span class="badge promocao">🔥 PROMOÇÃO</span>
+                                                                                                            <?php endif; ?>
                     
-                            <span class="badge <?php echo $produto['status']; ?>">
-                                <?php echo strtoupper($produto['status']); ?>
-                            </span>
+                                                                                                            <span class="badge <?php echo $produto['status']; ?>">
+                                                                                                                <?php echo strtoupper($produto['status']); ?>
+                                                                                                            </span>
                     
-                            <?php
-                            $estoque_baixo = $produto['estoque'] <= $produto['estoque_minimo'];
-                            ?>
-                            <span class="badge <?php echo $estoque_baixo ? 'estoque-baixo' : 'estoque-ok'; ?>">
-                                📦 Estoque: <?php echo $produto['estoque']; ?>
-                            </span>
-                        </h3>
+                                                                                                            <?php
+                                                                                                            $estoque_baixo = $produto['estoque'] <= $produto['estoque_minimo'];
+                                                                                                            ?>
+                                                                                                            <span class="badge <?php echo $estoque_baixo ? 'estoque-baixo' : 'estoque-ok'; ?>">
+                                                                                                                📦 Estoque: <?php echo $produto['estoque']; ?>
+                                                                                                            </span>
+                                                                                                        </h3>
                 
-                        <div class="produto-info">
-                            <div class="info-item">
-                                <strong>Categoria:</strong> <?php echo ucfirst($produto['categoria']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Marca:</strong> <?php echo htmlspecialchars($produto['marca']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Modelo:</strong> <?php echo htmlspecialchars($produto['modelo']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>SKU:</strong> <?php echo htmlspecialchars($produto['sku']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Cor:</strong> <?php echo htmlspecialchars($produto['cor']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Material:</strong> <?php echo htmlspecialchars($produto['material']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Dimensões:</strong> <?php echo htmlspecialchars($produto['dimensoes']); ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Preço:</strong> 
-                                <?php if ($produto['em_promocao']): ?>
-                                    <span style="text-decoration: line-through; color: #999;">
-                                        R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
-                                    </span>
-                                    <br>
-                                    <span style="color: #E74C3C; font-weight: bold;">
-                                        R$ <?php echo number_format($produto['preco_promocional'], 2, ',', '.'); ?>
-                                    </span>
-                                    <br>
-                                    <small style="color: #4CAF50;">
-                                        Economize R$ <?php echo number_format($produto['preco'] - $produto['preco_promocional'], 2, ',', '.'); ?>
-                                    </small>
-                                <?php else: ?>
-                                    R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
-                                <?php endif; ?>
-                            </div>
-                            <div class="info-item">
-                                <strong>Cadastrado em:</strong> 
-                                <?php echo date('d/m/Y H:i', strtotime($produto['data_cadastro'])); ?>
-                            </div>
-                        </div>
+                                                                                                        <div class="produto-info">
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Categoria:</strong> <?php echo ucfirst($produto['categoria']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Marca:</strong> <?php echo htmlspecialchars($produto['marca']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Modelo:</strong> <?php echo htmlspecialchars($produto['modelo']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>SKU:</strong> <?php echo htmlspecialchars($produto['sku']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Cor:</strong> <?php echo htmlspecialchars($produto['cor']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Material:</strong> <?php echo htmlspecialchars($produto['material']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Dimensões:</strong> <?php echo htmlspecialchars($produto['dimensoes']); ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Preço:</strong> 
+                                                                                                                <?php if ($produto['em_promocao']): ?>
+                                                                                                                                                            <span style="text-decoration: line-through; color: #999;">
+                                                                                                                                                                R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
+                                                                                                                                                            </span>
+                                                                                                                                                            <br>
+                                                                                                                                                            <span style="color: #E74C3C; font-weight: bold;">
+                                                                                                                                                                R$ <?php echo number_format($produto['preco_promocional'], 2, ',', '.'); ?>
+                                                                                                                                                            </span>
+                                                                                                                                                            <br>
+                                                                                                                                                            <small style="color: #4CAF50;">
+                                                                                                                                                                Economize R$ <?php echo number_format($produto['preco'] - $produto['preco_promocional'], 2, ',', '.'); ?>
+                                                                                                                                                            </small>
+                                                                                                                <?php else: ?>
+                                                                                                                                                            R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
+                                                                                                                <?php endif; ?>
+                                                                                                            </div>
+                                                                                                            <div class="info-item">
+                                                                                                                <strong>Cadastrado em:</strong> 
+                                                                                                                <?php echo date('d/m/Y H:i', strtotime($produto['data_cadastro'])); ?>
+                                                                                                            </div>
+                                                                                                        </div>
                         
-                        <div class="produto-acoes">
-                            <a href="TelaAdm.php?editar=<?php echo $produto['id']; ?>" class="btn btn-edit">
-                                Editar
-                            </a>
-                            <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
-                                <input type="hidden" name="action" value="excluir">
-                                <input type="hidden" name="produto_id" value="<?php echo $produto['id']; ?>">
-                                <button type="submit" class="btn btn-danger">
-                                    Excluir
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                                                                                                        <div class="produto-acoes">
+                                                                                                            <a href="TelaAdm.php?editar=<?php echo $produto['id']; ?>" class="btn btn-edit">
+                                                                                                                Editar
+                                                                                                            </a>
+                                                                                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                                                                                                                <input type="hidden" name="action" value="excluir">
+                                                                                                                <input type="hidden" name="produto_id" value="<?php echo $produto['id']; ?>">
+                                                                                                                <button type="submit" class="btn btn-danger">
+                                                                                                                    Excluir
+                                                                                                                </button>
+                                                                                                            </form>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                        <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
     </div>
