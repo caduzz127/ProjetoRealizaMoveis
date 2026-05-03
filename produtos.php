@@ -136,9 +136,9 @@ if (isset($_GET['ajax'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos - Realiza Móveis</title>
     <link rel="icon" type="image/svg+xml" href="assets/imgs/logoModificada.svg">
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         .main-content {
             display: flex;
@@ -342,7 +342,7 @@ if (isset($_GET['ajax'])) {
                     </div>
                 </div>
 
-                <div class="filtro-card">
+                <div class="filtro-card categoria">
                     <h3>Categoria</h3>
                     <div class="filtro-group">
                         <select name="categoria" onchange="this.form.submit()">
