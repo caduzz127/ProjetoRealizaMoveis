@@ -149,40 +149,145 @@ if (isset($_GET['ajax'])) {
         }
 
         .sidebar-filtros {
-            width: 300px;
+            width: 320px;
             flex-shrink: 0;
             position: sticky;
             top: 20px;
-            height: fit-content;
+            align-self: start;
         }
 
-        .filtro-card {
+        .sidebar-filtros-inner {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-top: 4px solid var(--gold);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.1);
+            border: 1px solid rgba(201,163,78,0.15);
         }
 
-        .filtro-card h3 {
-            color: var(--dark);
-            margin-bottom: 20px;
-            font-size: 1.1em;
+        .sidebar-panel-top {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
         }
 
-        .filtro-busca input,
-        .filtro-group select,
-        .filtro-group input {
+        .sidebar-panel-top h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--dark);
+        }
+
+        .sidebar-open-btn,
+        .sidebar-close-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            background: rgba(201,163,78,0.12);
+            color: var(--gold);
+            padding: 12px 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-close-btn {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 14px;
+        }
+
+        .sidebar-open-btn {
+            display: none;
             width: 100%;
-            padding: 10px 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-open-btn i {
+            font-size: 1rem;
+        }
+
+        .filter-block {
+            margin-bottom: 16px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #faf9f5;
+            border: 1px solid rgba(229, 218, 171, 0.5);
+        }
+
+        .accordion {
+            width: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px;
+            font-size: 0.98rem;
+            color: var(--dark);
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.25s ease;
+        }
+
+        .accordion:hover {
+            background: rgba(201,163,78,0.08);
+        }
+
+        .accordion span {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .accordion i {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion.active i {
+            transform: rotate(180deg);
+        }
+
+        .panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.25s ease;
+            padding: 0 18px;
+        }
+
+        .panel.show {
+            max-height: 500px;
+            padding-top: 14px;
+            padding-bottom: 18px;
+        }
+
+        .panel .filtro-busca,
+        .panel .filtro-group,
+        .panel .sidebar-menu {
+            display: grid;
+            gap: 14px;
+        }
+
+        .filtro-group select,
+        .filtro-group input,
+        .filtro-busca input {
+            width: 100%;
+            padding: 12px 14px;
             border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            font-size: 0.95em;
+            border-radius: 12px;
+            font-size: 0.96em;
             transition: all 0.3s;
+            background: #fff;
         }
 
         .filtro-busca input:focus,
@@ -190,6 +295,99 @@ if (isset($_GET['ajax'])) {
         .filtro-group input:focus {
             outline: none;
             border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201,163,78,0.12);
+        }
+
+        .sidebar-menu {
+            display: grid;
+            gap: 12px;
+        }
+
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #fff;
+            border: 1px solid rgba(229, 218, 171, 0.5);
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            transform: translateX(2px);
+            background: rgba(201,163,78,0.12);
+            border-color: rgba(201,163,78,0.35);
+        }
+
+        .sidebar-menu-item i {
+            color: var(--gold);
+        }
+
+        .mobile-sidebar-action {
+            display: none;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar-filtros {
+                width: 280px;
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 95;
+                padding: 18px 16px;
+                background: transparent;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar-filtros.open {
+                left: 0;
+            }
+
+            .sidebar-filtros-inner {
+                height: 100%;
+                overflow-y: auto;
+                padding-bottom: 30px;
+            }
+
+            .content-area {
+                width: 100%;
+            }
+
+            .mobile-sidebar-action {
+                display: block;
+            }
+
+            .sidebar-open-btn {
+                display: inline-flex;
+            }
+
+            .sidebar-close-btn {
+                display: inline-flex;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.45);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+                z-index: 90;
+            }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                pointer-events: all;
+            }
         }
 
         .btn-filtrar {
@@ -331,128 +529,183 @@ if (isset($_GET['ajax'])) {
     </nav>
 
     <div class="main-content">
+        <div class="mobile-sidebar-action">
+            <button id="sidebarOpenBtn" class="sidebar-open-btn">
+                <i class="fas fa-bars"></i>
+                Filtrar
+            </button>
+        </div>
+
         <!-- SIDEBAR DE FILTROS -->
-        <aside class="sidebar-filtros">
-            <form method="GET" id="filtrosForm">
-                <div class="filtro-card">
-                    <h3>Buscar</h3>
-                    <div class="filtro-busca">
-                        <input type="text" name="busca" placeholder="Nome, modelo ou descrição..." 
-                               value="<?php echo htmlspecialchars($busca); ?>">
-                    </div>
+        <aside class="sidebar-filtros" id="sidebarFiltros">
+            <div class="sidebar-filtros-inner">
+                <div class="sidebar-panel-top">
+                    <h3>Filtrar resultados</h3>
+                    <button type="button" id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="Fechar menu">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
-                <div class="filtro-card categoria">
-                    <h3>Categoria</h3>
-                    <div class="filtro-group">
-                        <select name="categoria" onchange="this.form.submit()">
-                            <option value="">Todas as Categorias</option>
-                            <?php foreach ($categorias as $cat): ?>
-                                <option value="<?php echo htmlspecialchars($cat); ?>" 
-                                    <?php echo $categoria == $cat ? 'selected' : ''; ?>>
-                                    <?php echo ucfirst($cat); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                <form method="GET" id="filtrosForm">
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-magnifying-glass"></i> Buscar</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-busca">
+                                <input type="text" name="busca" placeholder="Nome, modelo ou descrição..." 
+                                       value="<?php echo htmlspecialchars($busca); ?>">
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="filtro-card">
-                    <h3>Marca</h3>
-                    <div class="filtro-group">
-                        <select name="marca" onchange="this.form.submit()">
-                            <option value="">Todas as Marcas</option>
-                            <?php foreach ($marcas as $m): ?>
-                                <option value="<?php echo htmlspecialchars($m); ?>" 
-                                    <?php echo $marca == $m ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($m); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-th-large"></i> Categorias</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="sidebar-menu">
+                                <?php foreach ($categorias as $cat): ?>
+                                    <a href="produtos.php?categoria=<?php echo urlencode($cat); ?>" class="sidebar-menu-item">
+                                        <span><?php echo ucfirst(htmlspecialchars($cat)); ?></span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="filtro-card">
-                    <h3>Faixa de Preço</h3>
-                    <div class="filtro-group">
-                        <label>Preço Mínimo (R$)</label>
-                        <input type="number" name="preco_min" placeholder="0" step="0.01" 
-                               value="<?php echo htmlspecialchars($preco_min); ?>">
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-tag"></i> Marca</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-group">
+                                <select name="marca" onchange="this.form.submit()">
+                                    <option value="">Todas as Marcas</option>
+                                    <?php foreach ($marcas as $m): ?>
+                                        <option value="<?php echo htmlspecialchars($m); ?>" 
+                                            <?php echo $marca == $m ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($m); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="filtro-group">
-                        <label>Preço Máximo (R$)</label>
-                        <input type="number" name="preco_max" placeholder="10000" step="0.01" 
-                               value="<?php echo htmlspecialchars($preco_max); ?>">
-                    </div>
-                </div>
 
-                <?php if (!empty($cores)): ?>
-                <div class="filtro-card">
-                    <h3>Cor</h3>
-                    <div class="filtro-group">
-                        <select name="cor" onchange="this.form.submit()">
-                            <option value="">Todas as Cores</option>
-                            <?php foreach ($cores as $c): ?>
-                                <option value="<?php echo htmlspecialchars($c); ?>" 
-                                    <?php echo $cor == $c ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($c); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-dollar-sign"></i> Faixa de Preço</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-group">
+                                <label>Preço Mínimo (R$)</label>
+                                <input type="number" name="preco_min" placeholder="0" step="0.01" 
+                                       value="<?php echo htmlspecialchars($preco_min); ?>">
+                            </div>
+                            <div class="filtro-group">
+                                <label>Preço Máximo (R$)</label>
+                                <input type="number" name="preco_max" placeholder="10000" step="0.01" 
+                                       value="<?php echo htmlspecialchars($preco_max); ?>">
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <?php endif; ?>
 
-                <?php if (!empty($materiais)): ?>
-                <div class="filtro-card">
-                    <h3>Material</h3>
-                    <div class="filtro-group">
-                        <select name="material" onchange="this.form.submit()">
-                            <option value="">Todos os Materiais</option>
-                            <?php foreach ($materiais as $mat): ?>
-                                <option value="<?php echo htmlspecialchars($mat); ?>" 
-                                    <?php echo $material == $mat ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($mat); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <?php if (!empty($cores)): ?>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-palette"></i> Cor</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-group">
+                                <select name="cor" onchange="this.form.submit()">
+                                    <option value="">Todas as Cores</option>
+                                    <?php foreach ($cores as $c): ?>
+                                        <option value="<?php echo htmlspecialchars($c); ?>" 
+                                            <?php echo $cor == $c ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($c); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
-                <div class="filtro-card">
-                    <h3>Especiais</h3>
-                    <div class="checkbox-filtro">
-                        <input type="checkbox" id="apenas_promocao" name="apenas_promocao" value="1" 
-                               <?php echo $apenas_promocao ? 'checked' : ''; ?> onchange="this.form.submit()">
-                        <label for="apenas_promocao">🔥 Apenas Promoções</label>
+                    <?php if (!empty($materiais)): ?>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-leaf"></i> Material</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-group">
+                                <select name="material" onchange="this.form.submit()">
+                                    <option value="">Todos os Materiais</option>
+                                    <?php foreach ($materiais as $mat): ?>
+                                        <option value="<?php echo htmlspecialchars($mat); ?>" 
+                                            <?php echo $material == $mat ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($mat); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="checkbox-filtro">
-                        <input type="checkbox" id="apenas_destaque" name="apenas_destaque" value="1" 
-                               <?php echo $apenas_destaque ? 'checked' : ''; ?> onchange="this.form.submit()">
-                        <label for="apenas_destaque">⭐ Apenas Destaques</label>
-                    </div>
-                </div>
+                    <?php endif; ?>
 
-                <div class="filtro-card">
-                    <h3>Ordenar por</h3>
-                    <div class="filtro-group">
-                        <select name="ordenar" onchange="this.form.submit()">
-                            <option value="destaque" <?php echo $ordenar == 'destaque' ? 'selected' : ''; ?>>⭐ Destaques</option>
-                            <option value="promocao" <?php echo $ordenar == 'promocao' ? 'selected' : ''; ?>>🔥 Promoções</option>
-                            <option value="menor_preco" <?php echo $ordenar == 'menor_preco' ? 'selected' : ''; ?>>💵 Menor Preço</option>
-                            <option value="maior_preco" <?php echo $ordenar == 'maior_preco' ? 'selected' : ''; ?>>💰 Maior Preço</option>
-                            <option value="nome" <?php echo $ordenar == 'nome' ? 'selected' : ''; ?>>🔤 Nome (A-Z)</option>
-                        </select>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-star"></i> Especiais</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="checkbox-filtro">
+                                <input type="checkbox" id="apenas_promocao" name="apenas_promocao" value="1" 
+                                       <?php echo $apenas_promocao ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label for="apenas_promocao">🔥 Apenas Promoções</label>
+                            </div>
+                            <div class="checkbox-filtro">
+                                <input type="checkbox" id="apenas_destaque" name="apenas_destaque" value="1" 
+                                       <?php echo $apenas_destaque ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label for="apenas_destaque">⭐ Apenas Destaques</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" class="btn-filtrar">Aplicar Filtros</button>
-                <a href="produtos.php" class="btn-limpar" style="text-decoration: none; text-align: center; display: block;">
-                    Limpar Filtros
-                </a>
-            </form>
+                    <div class="filter-block">
+                        <button type="button" class="accordion active">
+                            <span><i class="fas fa-arrow-up-a-z"></i> Ordenar por</span>
+                            <i class="fas fa-chevron-down accordion-icon"></i>
+                        </button>
+                        <div class="panel show">
+                            <div class="filtro-group">
+                                <select name="ordenar" onchange="this.form.submit()">
+                                    <option value="destaque" <?php echo $ordenar == 'destaque' ? 'selected' : ''; ?>>⭐ Destaques</option>
+                                    <option value="promocao" <?php echo $ordenar == 'promocao' ? 'selected' : ''; ?>>🔥 Promoções</option>
+                                    <option value="menor_preco" <?php echo $ordenar == 'menor_preco' ? 'selected' : ''; ?>>💵 Menor Preço</option>
+                                    <option value="maior_preco" <?php echo $ordenar == 'maior_preco' ? 'selected' : ''; ?>>💰 Maior Preço</option>
+                                    <option value="nome" <?php echo $ordenar == 'nome' ? 'selected' : ''; ?>>🔤 Nome (A-Z)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-filtrar">Aplicar Filtros</button>
+                    <a href="produtos.php" class="btn-limpar" style="text-decoration: none; text-align: center; display: block;">
+                        Limpar Filtros
+                    </a>
+                </form>
+            </div>
         </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="content-area">
@@ -589,6 +842,42 @@ if (isset($_GET['ajax'])) {
         }
 
         updateCartCount();
+
+        const sidebar = document.getElementById('sidebarFiltros');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarOpenBtn = document.getElementById('sidebarOpenBtn');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const accordions = document.querySelectorAll('.accordion');
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+        }
+
+        sidebarOpenBtn?.addEventListener('click', openSidebar);
+        sidebarCloseBtn?.addEventListener('click', closeSidebar);
+        sidebarOverlay?.addEventListener('click', closeSidebar);
+
+        accordions.forEach(button => {
+            button.addEventListener('click', () => {
+                const panel = button.nextElementSibling;
+                const isOpen = button.classList.contains('active');
+
+                button.classList.toggle('active');
+                if (panel) {
+                    if (isOpen) {
+                        panel.classList.remove('show');
+                    } else {
+                        panel.classList.add('show');
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>

@@ -167,6 +167,18 @@ nav {
   color: var(--gold);
 }
 
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 12px 20px 12px 86px;
+    justify-content: flex-start;
+  }
+
+  .top-bar-content {
+    justify-content: flex-start;
+    gap: 18px;
+  }
+}
+
 .banner {
   height: 300px;
   background: url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7') center/cover;
