@@ -10,16 +10,16 @@
 // ============================================
 // CREDENCIAIS DO SUPABASE
 // ============================================
-// $host     = getenv('DB_HOST'); // Substitua pelo seu host
-// $dbname   = getenv('DB_NAME');
-// $user     = getenv('DB_USER');
-// $password = getenv('DB_PASS'); 
-// $port     = getenv('DB_PORT');                      // Porta padrão PostgreSQL
-$host     = 'aws-1-sa-east-1.pooler.supabase.com'; // Substitua pelo seu host
-$dbname   = 'postgres';
-$user     = 'postgres.gmjdsvjedcvdvwfganxi';
-$password = '5vt7UGaOMQqsvPri';
-$port     = '6543';  
+$host     = getenv('DB_HOST'); // Substitua pelo seu host
+$dbname   = getenv('DB_NAME');
+$user     = getenv('DB_USER');
+$password = getenv('DB_PASS'); 
+$port     = getenv('DB_PORT');                      // Porta padrão PostgreSQL
+// $host     = 'aws-1-sa-east-1.pooler.supabase.com'; // Substitua pelo seu host
+// $dbname   = 'postgres';
+// $user     = 'postgres.gmjdsvjedcvdvwfganxi';
+// $password = '5vt7UGaOMQqsvPri';
+// $port     = '6543';  
 // ============================================
 // CONEXÃO PDO COM SSL
 // ============================================
