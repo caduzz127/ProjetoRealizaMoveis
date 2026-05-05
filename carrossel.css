@@ -1,0 +1,114 @@
+/* Carousel styles */
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.carousel {
+    width: 100%;
+    max-width: 1774px;
+    height: 263px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 0 0 12px 12px;
+    box-shadow: none;
+    margin: 0 auto 20px auto;
+}
+
+.carousel-slides {
+    display: flex;
+    transition: transform 0.6s ease;
+    will-change: transform;
+}
+
+.carousel-slide {
+    min-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 263px;
+    background: transparent;
+}
+
+.carousel-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+.carousel-controls {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.carousel-controls button {
+    pointer-events: all;
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    margin: 0 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.carousel-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+
+.carousel-dots button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0;
+}
+
+.carousel-dots button.active {
+    background: var(--gold);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 1025px) {
+    .carousel-slide:nth-child(-n+3) {
+        display: none;
+        /* esconde img1, img2, img3 */
+    }
+}
+
+/* Mobile (<=1024px) */
+@media (max-width: 1024px) {
+    .carousel {
+        height: auto;
+    }
+
+    .carousel-slide {
+        width: 100%;
+        height: auto;
+    }
+
+    .carousel-slide img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+}

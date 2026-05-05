@@ -167,6 +167,18 @@ nav {
   color: var(--gold);
 }
 
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 12px 20px 12px 86px;
+    justify-content: flex-start;
+  }
+
+  .top-bar-content {
+    justify-content: flex-start;
+    gap: 18px;
+  }
+}
+
 .banner {
   height: 300px;
   background: url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7') center/cover;
@@ -865,7 +877,72 @@ footer {
   opacity: 0.7;
 }
 
+/* PARTE DO PESQUISAR NO INDEX */
+.pesquisar-produtos {
+ 
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 12px;
+  max-width: 600px;
+  margin: 40px auto;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
 
+.pesquisar-produtos-header h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.pesquisar-produtos-form {
+  
+  margin: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.pesquisar-produtos-form input {
+  width: 60%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.pesquisar-produtos-form input:focus {
+  border-color: #d4a017;
+  box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.2);
+}
+
+.pesquisar-produtos-form button {
+  background-color: #d4a017;
+  width: 15%;
+  border: none;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.pesquisar-produtos-form button:hover {
+  background-color: #b88a14;
+  transform: translateY(-1px);
+}
+
+.pesquisar-produtos-form i {
+  font-size: 14px;
+}
 
 /* TELA ADM */
 /*TELA DE PRODUTOS.PHP*/
