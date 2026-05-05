@@ -60,9 +60,371 @@ try {
   <link rel="stylesheet" href="menuLateral.css">
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
 
+<<<<<<< HEAD
+=======
+        .carousel {
+            width: 100%;
+            max-width: 1774px;
+            height: 263px;
+            overflow: hidden;
+            position: relative;
+            border-radius: 0 0 12px 12px;
+            box-shadow: none;
+            margin: 0 auto 20px auto;
+        }
+
+        .carousel-slides {
+            display: flex;
+            transition: transform 0.6s ease;
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 263px;
+            background: transparent;
+        }
+
+        .carousel-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+        }
+
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .carousel-controls button {
+            pointer-events: all;
+            background: rgba(0,0,0,0.45);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        .carousel-dots button {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.6);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .carousel-dots button.active {
+            background: var(--gold);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        @media (min-width: 1025px) {
+      .carousel-slide:nth-child(-n+3) {
+        display: none;
+        /* esconde img1, img2, img3 */
+        }
+        }
+
+        /* Mobile (<=1024px) */
+        @media (max-width: 1024px) {
+        .carousel {
+            height: auto;
+        }
+
+        .carousel-slide {
+            width: 100%;
+            height: auto;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        }
+
+        /* MENU LATERAL PRINCIPAL */
+        .home-layout {
+            display: flex;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            padding: 0 20px 20px;
+        }
+
+        .home-sidebar {
+            width: 100%;
+            max-width: 340px;
+            position: fixed;
+            left: -360px;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            padding: 0;
+            background: transparent;
+            transition: left 0.28s ease;
+            overflow: hidden;
+        }
+
+        .home-sidebar.open {
+            left: 0;
+        }
+
+        .home-sidebar-panel {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 0;
+            padding: 28px 24px 32px 24px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+            border: none;
+            overflow-y: auto;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 15px;
+            background: #111;
+            cursor: pointer;
+            transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+            z-index: 200;
+        }
+
+        .menu-button:hover {
+            background: #222;
+            transform: translateY(-1px);
+        }
+
+        .menu-button span {
+            display: block;
+            width: 20px;
+            height: 3px;
+            background: #fff;
+            border-radius: 1px;
+        }
+
+        .menu-button span + span {
+            margin-top: 2px;
+        }
+
+        .home-sidebar-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .home-sidebar-title {
+            font-size: 1.14rem;
+            font-weight: 900;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .home-sidebar-subtitle {
+            margin: 10px 0 0;
+            color: #b8aeb0;
+            font-size: .84rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .sidebar-close-btn {
+            border: 1.5px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: #ffffff;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-close-btn:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .home-sidebar-menu {
+            display: grid;
+            gap: 18px;
+            margin-top: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: linear-gradient(135deg, #f5ead5 0%, #f8eedd 100%);
+            border-radius: 28px;
+            padding: 18px 24px;
+            text-decoration: none;
+            color: #2a2a2a;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 700;
+            font-size: 0.98rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .sidebar-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+            background: linear-gradient(135deg, #fef3e0 0%, #fffaf2 100%);
+        }
+
+        .sidebar-item:active {
+            transform: translateY(-2px);
+        }
+
+        .sidebar-item span {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-weight: 700;
+            font-size: 0.98rem;
+        }
+
+        .sidebar-item span i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.12));
+            color: #d4af37;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item i.icon-chevron {
+            color: #b89a6a;
+            font-size: 0.9rem;
+            width: auto;
+            height: auto;
+            background: none;
+            border-radius: 0;
+            flex-shrink: 0;
+        }
+
+        .home-main {
+            flex: 1;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        @media (max-width: 968px) {
+            .home-layout {
+                flex-direction: column;
+                padding-top: 20px;
+            }
+
+            .home-sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                bottom: 0;
+                width: 280px;
+                z-index: 95;
+                padding: 20px;
+                background: transparent;
+                transition: left 0.28s ease;
+            }
+
+            .home-sidebar.open {
+                left: 0;
+            }
+
+            .home-sidebar-panel {
+                height: 100%;
+                overflow-y: auto;
+                padding-bottom: 32px;
+            }
+
+            .home-main {
+                width: 100%;
+            }
+        }
+    </style>
+>>>>>>> 64fe57e07bda6c28cdf506e7e597b23a794b093c
 </head>
 
 <body>
+<<<<<<< HEAD
   <button class="menu-button" id="menuToggleBtn" aria-label="Abrir menu">
     <span></span>
     <span></span>
@@ -80,9 +442,30 @@ try {
         <i class="fas fa-phone"></i>
         <a href="tel:+5521979771368">(21) 97977-1368</a>
       </div>
+=======
+    <button class="menu-button" id="menuToggleBtn" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="top-bar-item">
+                <img src="assets/imgs/locBranco.svg" alt="Localização">
+                <a href="#">Estrada do Cabuçu 3448, Rio de Janeiro</a>
+            </div>
+            <div class="top-bar-item">
+                <i class="fas fa-phone"></i>
+                <a href="tel:+5521979771368">(21) 97977-1368</a>
+            </div>
+        </div>
+>>>>>>> 64fe57e07bda6c28cdf506e7e597b23a794b093c
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- HEADER -->
   <header>
     <div class="header-container">
@@ -95,6 +478,20 @@ try {
       </button>
     </div>
   </header>
+=======
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <div class="header-logo">
+                <img src="assets/imgs/LogoAchatada.svg" class="logo" alt="Logo Realiza Móveis">
+            </div>
+            <button class="cart-button" id="cartBtn" onclick="window.location.href='cart.html'">
+                <span class="cart-button-icon">🛒 Ver Carrinho</span>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+>>>>>>> 64fe57e07bda6c28cdf506e7e597b23a794b093c
 
   <!-- NAVIGATION -->
   <nav>
@@ -625,10 +1022,99 @@ try {
       const sidebarOverlay = document.getElementById('sidebarOverlay');
       const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
 
+<<<<<<< HEAD
       function openSidebar() {
         homeSidebar?.classList.add('open');
         sidebarOverlay?.classList.add('active');
       }
+=======
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggleBtn = document.getElementById('menuToggleBtn');
+            const homeSidebar = document.getElementById('homeSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+
+            function openSidebar() {
+                homeSidebar?.classList.add('open');
+                sidebarOverlay?.classList.add('active');
+            }
+
+            function closeSidebar() {
+                homeSidebar?.classList.remove('open');
+                sidebarOverlay?.classList.remove('active');
+            }
+
+            menuToggleBtn?.addEventListener('click', openSidebar);
+            sidebarCloseBtn?.addEventListener('click', closeSidebar);
+            sidebarOverlay?.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeSidebar();
+                }
+            });
+        });
+    </script>
+
+    <div class="home-layout">
+        <aside class="home-sidebar" id="homeSidebar">
+            <div class="home-sidebar-panel">
+                <div class="home-sidebar-header">
+                    <div>
+                        <h3 class="home-sidebar-title">Categorias</h3>
+                        <p class="home-sidebar-subtitle">Escolha o ambiente ideal para sua casa.</p>
+                    </div>
+                    <button type="button" class="sidebar-close-btn" aria-label="Fechar menu"><i class="fas fa-times"></i></button>
+                </div>
+
+                <nav class="home-sidebar-menu" aria-label="Menu lateral de categorias">
+                    <a class="sidebar-item" href="produtos.php?categoria=Sof%C3%A1s">
+                        <span><i class="fas fa-couch"></i><span class="item-name">Sofás</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Sala%20de%20Estar">
+                        <span><i class="fas fa-tv"></i><span class="item-name">Sala de Estar</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Sala%20de%20Jantar">
+                        <span><i class="fas fa-utensils"></i><span class="item-name">Sala de Jantar</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Quarto">
+                        <span><i class="fas fa-bed"></i><span class="item-name">Quarto</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Cozinha">
+                        <span><i class="fas fa-bowl-food"></i><span class="item-name">Cozinha</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Office">
+                        <span><i class="fas fa-laptop"></i><span class="item-name">Office</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                    <a class="sidebar-item" href="produtos.php?categoria=Infantil">
+                        <span><i class="fas fa-baby"></i><span class="item-name">Infantil</span></span>
+                        <i class="fas fa-chevron-down icon-chevron"></i>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="home-main">
+            <?php if (empty($produtos)): ?>
+                <div class="sem-produtos">
+                    <h3>🔍 Nenhum produto encontrado</h3>
+                    <p>Tente ajustar os filtros de busca</p>
+                </div>
+            <?php else: ?>
+                <div id="produtosArea" class="produtos-grid">
+            <?php foreach ($produtos as $produto): ?>
+                <div class="produto-card" onclick="window.location.href='produto-detalhes.php?id=<?php echo $produto['id']; ?>'">
+                    <div class="product-badge">
+                        <?php echo $produto['em_promocao'] ? 'Oferta' : htmlspecialchars($produto['categoria']); ?>
+                    </div>
+>>>>>>> 64fe57e07bda6c28cdf506e7e597b23a794b093c
 
       function closeSidebar() {
         homeSidebar?.classList.remove('open');
@@ -647,10 +1133,25 @@ try {
     });
   </script>
 
+<<<<<<< HEAD
   <!-- busca -->
   <script>
     function buscarProdutos(event) {
       event.preventDefault();
+=======
+                        <button class="btn-comprar" onclick="event.stopPropagation(); window.location.href='produto-detalhes.php?id=<?php echo $produto['id']; ?>'">
+                            VER DETALHES
+                        </button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+        </main>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+>>>>>>> 64fe57e07bda6c28cdf506e7e597b23a794b093c
 
       const busca = document.getElementById("inputBusca").value;
 
