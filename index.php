@@ -32,7 +32,7 @@ try {
     $stmt->bindValue(':busca', "%$busca%");
     $stmt->execute();
     $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+    $produtos = formatar_produtos($produtos);
   }
 } catch (PDOException $e) {
   error_log("Erro ao buscar produtos: " . $e->getMessage());

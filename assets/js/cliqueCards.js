@@ -4,17 +4,17 @@ document.addEventListener("click", function(event) {
 
     if (card) {
         if (card.id === "guarda-roupa") {
-            window.location.href = "guarda-roupa.php";
+            window.location.href = "produtos.php?categoria=guarda-roupa";
         }
 
         if (card.id === "sofas-e-mesas") {
-             window.location.href = "sofa.php";
+             window.location.href = "produtos.php?categoria=sofa";
         }
         if (card.id === "escrivaninha") {
-            window.location.href = "escrivaninha.php";
+            window.location.href = "produtos.php?categoria=escrivaninha";
         }
         if (card.id === "mesa-de-jantar") {
-            window.location.href = "mesa.php";
+            window.location.href = "produtos.php?categoria=mesa";
         }
     }
 });
