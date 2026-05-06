@@ -53,8 +53,7 @@
     height: 52px;
     padding: 0;
     border: none;
-    border-radius: 16px;
-    background: #111;
+    background: #000000;
     cursor: pointer;
     transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
@@ -62,8 +61,9 @@
 }
 
 .menu-button:hover {
-    background: #222;
+    background: #ffffff;
     transform: translateY(-1px);
+    color: #e6c300;
 }
 
 .menu-button span {
@@ -76,6 +76,18 @@
 
 .menu-button span+span {
     margin-top: 1px;
+}
+
+.home-sidebar.open ~ .menu-button {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8); /* Opcional: dá um efeito de diminuição ao sumir */
+}
+
+.menu-button.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-20px); /* Opcional: faz ele dar um leve deslize ao sair */
 }
 
 .home-sidebar-header {
