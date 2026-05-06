@@ -64,9 +64,7 @@ try {
 
 <body>
   <button class="menu-button" id="menuToggleBtn" aria-label="Abrir menu">
-    <span></span>
-    <span></span>
-    <span></span>
+    <i class="fas fa-bars" style= "font-size: 20px;"></i>
   </button>
 
   <!-- TOP BAR -->
@@ -157,7 +155,7 @@ try {
         </div>
 
         <nav class="home-sidebar-menu" aria-label="Menu lateral de categorias">
-          <a class="sidebar-item" href="produtos.php?categoria=Sof%C3%A1s">
+          <a class="sidebar-item" href="produtos.php?categoria=sofa">
             <span><i class="fas fa-couch"></i><span class="item-name">Sofás</span></span>
             <i class="fas fa-chevron-down icon-chevron"></i>
           </a>
@@ -619,32 +617,36 @@ try {
   </script>
   <!-- MENU LATERAL -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const menuToggleBtn = document.getElementById('menuToggleBtn');
-      const homeSidebar = document.getElementById('homeSidebar');
-      const sidebarOverlay = document.getElementById('sidebarOverlay');
-      const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+  document.addEventListener('DOMContentLoaded', () => {
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const homeSidebar = document.getElementById('homeSidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
 
-      function openSidebar() {
-        homeSidebar?.classList.add('open');
-        sidebarOverlay?.classList.add('active');
+    function openSidebar() {
+      homeSidebar?.classList.add('open');
+      sidebarOverlay?.classList.add('active');
+      // Adiciona a classe para esconder o botão de abrir
+      menuToggleBtn?.classList.add('hidden');
+    }
+
+    function closeSidebar() {
+      homeSidebar?.classList.remove('open');
+      sidebarOverlay?.classList.remove('active');
+      // Remove a classe para o botão de abrir voltar
+      menuToggleBtn?.classList.remove('hidden');
+    }
+
+    menuToggleBtn?.addEventListener('click', openSidebar);
+    sidebarCloseBtn?.addEventListener('click', closeSidebar);
+    sidebarOverlay?.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeSidebar();
       }
-
-      function closeSidebar() {
-        homeSidebar?.classList.remove('open');
-        sidebarOverlay?.classList.remove('active');
-      }
-
-      menuToggleBtn?.addEventListener('click', openSidebar);
-      sidebarCloseBtn?.addEventListener('click', closeSidebar);
-      sidebarOverlay?.addEventListener('click', closeSidebar);
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          closeSidebar();
-        }
-      });
     });
+  });
   </script>
 
   <!-- busca -->
