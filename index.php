@@ -311,7 +311,7 @@ try {
         <div class="room-card__text">
           <span class="room-card__label">Ambiente</span>
           <h3 class="room-card__title">Sala de Estar</h3>
-          <a href="sofa.php" class="room-card__link">Ver Sofás & Mesas →</a>
+          <a href="produtos.php?categoria=sofa" class="room-card__link">Ver Sofás & Mesas →</a>
         </div>
       </div>
       <div class="room-card" data-aos="fade-left" data-aos-delay="100" id="guarda-roupa">
@@ -321,7 +321,7 @@ try {
         <div class="room-card__text">
           <span class="room-card__label">Ambiente</span>
           <h3 class="room-card__title">Quarto</h3>
-          <a href="guarda-roupa.php" class="room-card__link">Ver Guarda-Roupas →</a>
+          <a href="produtos.php?categoria=guarda-roupa" class="room-card__link">Ver Guarda-Roupas →</a>
         </div>
       </div>
       <div class="room-card" data-aos="fade-left" data-aos-delay="200" id="escrivaninha">
@@ -331,7 +331,7 @@ try {
         <div class="room-card__text">
           <span class="room-card__label">Ambiente</span>
           <h3 class="room-card__title">Escritório</h3>
-          <a href="escrivaninha.php" class="room-card__link">Ver Escrivaninhas →</a>
+          <a href="produtos.php?categoria=escrivaninha" class="room-card__link">Ver Escrivaninhas →</a>
         </div>
       </div>
       <div class="room-card" data-aos="fade-up" data-aos-delay="300" id="mesa-de-jantar">
@@ -341,7 +341,7 @@ try {
         <div class="room-card__text">
           <span class="room-card__label">Ambiente</span>
           <h3 class="room-card__title">Área de Jantar</h3>
-          <a href="mesa.php" class="room-card__link">Ver Mesas →</a>
+          <a href="produtos.php?categoria=mesa" class="room-card__link">Ver Mesas →</a>
         </div>
       </div>
     </div>
