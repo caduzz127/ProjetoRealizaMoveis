@@ -88,12 +88,7 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-@media (min-width: 1025px) {
-    .carousel-slide:nth-child(-n+3) {
-        display: none;
-        /* esconde img1, img2, img3 */
-    }
-}
+
 
 /* Mobile (<=1024px) */
 @media (max-width: 1024px) {

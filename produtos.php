@@ -331,64 +331,7 @@ if (isset($_GET['ajax'])) {
             margin-bottom: 18px;
         }
 
-        @media (max-width: 968px) {
-            .main-content {
-                flex-direction: column;
-            }
-
-            .sidebar-filtros {
-                width: 280px;
-                position: fixed;
-                left: -100%;
-                top: 0;
-                bottom: 0;
-                z-index: 95;
-                padding: 18px 16px;
-                background: transparent;
-                transition: left 0.3s ease;
-            }
-
-            .sidebar-filtros.open {
-                left: 0;
-            }
-
-            .sidebar-filtros-inner {
-                height: 100%;
-                overflow-y: auto;
-                padding-bottom: 30px;
-            }
-
-            .content-area {
-                width: 100%;
-            }
-
-            .mobile-sidebar-action {
-                display: block;
-            }
-
-            .sidebar-open-btn {
-                display: inline-flex;
-            }
-
-            .sidebar-close-btn {
-                display: inline-flex;
-            }
-
-            .sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.45);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.3s ease;
-                z-index: 90;
-            }
-
-            .sidebar-overlay.active {
-                opacity: 1;
-                pointer-events: all;
-            }
-        }
+        
 
         .btn-filtrar {
             width: 100%;
@@ -471,14 +414,9 @@ if (isset($_GET['ajax'])) {
             cursor: pointer;
         }
 
-        @media (max-width: 968px) {
+        @media (max-width: 1024px) {
             .main-content {
                 flex-direction: column;
-            }
-
-            .sidebar-filtros {
-                width: 100%;
-                position: static;
             }
         }
     </style>    

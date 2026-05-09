@@ -7,14 +7,13 @@
 * {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   box-sizing: border-box;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
 }
 
+
 body {
   background: var(--light);
-  
 }
 
 header {
@@ -333,11 +332,11 @@ button:hover {
   }
 
   .cart-button {
-    bottom: 20px;
-    right: 20px;
-    min-width: 100px;
-    height: 45px;
-    padding: 0 15px;
+    right: 10px;
+    bottom: 15px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
   }
 }
 
@@ -882,7 +881,7 @@ footer {
 
 /* PARTE DO PESQUISAR NO INDEX */
 .pesquisar-produtos {
- 
+
   padding: 40px 20px;
   text-align: center;
   border-radius: 12px;
@@ -899,7 +898,7 @@ footer {
 }
 
 .pesquisar-produtos-form {
-  
+
   margin: auto;
   display: flex;
   flex-wrap: wrap;
@@ -961,4 +960,10 @@ footer {
     display: none;
   }
 
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: clip;
 }
