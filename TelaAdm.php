@@ -150,13 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if ($_POST['action'] === 'cadastrar') {
                 $insertSql = "INSERT INTO produtos (
                         nome, descricao, categoria, marca, modelo,
-                        cor, cor_hex, material, dimensoes, peso,
+                       
                         preco, preco_promocional, em_promocao, desconto_percentual,
                         estoque, estoque_minimo, sku,
                         imagem_principal, imagem_secundarias, status, destaque, data_cadastro
                     ) VALUES (
                         :nome, :descricao, :categoria, :marca, :modelo,
-                        :cor, :cor_hex, :material, :dimensoes, :peso,
+                       
                         :preco, :preco_promocional, :em_promocao, :desconto_percentual,
                         :estoque, :estoque_minimo, :sku,
                         :imagem_principal, :imagem_secundarias, :status, :destaque, NOW()
@@ -166,8 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt = $pdo->prepare("
                     UPDATE produtos SET
                         nome = :nome, descricao = :descricao, categoria = :categoria, 
-                        marca = :marca, modelo = :modelo, cor = :cor, cor_hex = :cor_hex, material = :material,
-                        dimensoes = :dimensoes, peso = :peso, preco = :preco,
+                        marca = :marca, modelo = :modelo,  preco = :preco,
                         preco_promocional = :preco_promocional, em_promocao = :em_promocao,
                         desconto_percentual = :desconto_percentual, estoque = :estoque,
                         estoque_minimo = :estoque_minimo, sku = :sku,
@@ -183,11 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 ':categoria' => $_POST['categoria'],
                 ':marca' => $_POST['marca'],
                 ':modelo' => $_POST['modelo'],
-                ':cor' => $_POST['cor'],
-                ':cor_hex' => $_POST['cor_hex'],
-                ':material' => $_POST['material'],
-                ':dimensoes' => $_POST['dimensoes'],
-                ':peso' => $_POST['peso'],
+                
                 ':preco' => $preco,
                 ':preco_promocional' => $preco_promocional,
                 ':em_promocao' => $em_promocao,
@@ -281,9 +276,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             ':modelo' => $_POST['modelo'],
                             ':cor' => $cor_val,
                             ':cor_hex' => $cor_hex_val,
-                            ':material' => $_POST['material'],
-                            ':dimensoes' => $_POST['dimensoes'],
-                            ':peso' => $_POST['peso'],
+                            ':material' => $_POST['material'] ?? '',
+                            ':dimensoes' => $_POST['dimensoes'] ?? '',
+                            ':peso' => $_POST['peso'] ?? '',
                             ':preco' => $preco,
                             ':preco_promocional' => $preco_promocional,
                             ':em_promocao' => $em_promocao,
@@ -943,40 +938,6 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
 
                 <div class="section-divider"></div>
 
-                <!-- CARACTERÍSTICAS FÍSICAS -->
-                <h3 style="color: var(--dourado-escuro); margin-bottom: 15px;">Características Físicas</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="cor">Cor Principal</label>
-                        <div class="form-group-inputs">
-                            <input type="text" id="cor" name="cor" 
-                                value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['cor']) : ''; ?>">
-                            <input type="color" name="cor_hex" style="width: 50px; height: 30px; padding: 0; border-radius: 10px; margin-top:10px;">
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="form-group">
-                        <label for="material">Material</label>
-                        <input type="text" id="material" name="material" 
-                               value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['material']) : ''; ?>">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="dimensoes">Dimensões (LxAxP)</label>
-                        <input type="text" id="dimensoes" name="dimensoes" placeholder="Ex: 200x80x90 cm"
-                               value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['dimensoes']) : ''; ?>">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="peso">Peso (kg)</label>
-                        <input type="text" id="peso" name="peso" placeholder="Ex: 50"
-                               value="<?php echo $produto_edicao ? htmlspecialchars($produto_edicao['peso']) : ''; ?>">
-                    </div>
-                </div>
-
-                <div class="section-divider"></div>
-
                 <!-- IMAGENS -->
                 <h3 style="color: var(--dourado-escuro); margin-bottom: 15px;">Imagens</h3>
                 <div class="form-group">
@@ -1153,15 +1114,6 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                                                                                                             </div>
                                                                                                             <div class="info-item">
                                                                                                                 <strong>SKU:</strong> <?php echo htmlspecialchars($produto['sku']); ?>
-                                                                                                            </div>
-                                                                                                            <div class="info-item">
-                                                                                                                <strong>Cor:</strong> <?php echo htmlspecialchars($produto['cor']); ?>
-                                                                                                            </div>
-                                                                                                            <div class="info-item">
-                                                                                                                <strong>Material:</strong> <?php echo htmlspecialchars($produto['material']); ?>
-                                                                                                            </div>
-                                                                                                            <div class="info-item">
-                                                                                                                <strong>Dimensões:</strong> <?php echo htmlspecialchars($produto['dimensoes']); ?>
                                                                                                             </div>
                                                                                                             <div class="info-item">
                                                                                                                 <strong>Preço:</strong> 

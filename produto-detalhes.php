@@ -197,54 +197,6 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             object-fit: cover;
         }
 
-        /* OPÇÕES DE CORES */
-        .opcoes-cores {
-            margin-top: 18px;
-        }
-
-        .opcoes-cores h4 {
-            margin: 0 0 8px 0;
-            font-size: 0.95em;
-            color: var(--dark);
-        }
-
-        .swatches {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .swatch {
-            display: inline-flex;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 2px solid transparent;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .swatch img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .swatch-circle {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .swatch.selected {
-            border-color: var(--gold);
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-        }
-
         /* INFORMAÇÕES DO PRODUTO */
         .info-produto {
             display: flex;
@@ -308,6 +260,53 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             padding: 25px;
             border-radius: 12px;
             margin-bottom: 30px;
+        }
+
+        .parcelamento-box {
+            margin-top: 18px;
+            padding: 18px 20px;
+            border-radius: 12px;
+            background: #fff9e6;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            color: #3e3a1f;
+        }
+
+        .parcelamento-box label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .parcelamento-box select {
+            width: 100%;
+            max-width: 160px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d4af37;
+            background: white;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .parcelamento-valor {
+            font-size: 1.25em;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--dark);
+        }
+
+        .parcelamento-info {
+            font-size: 0.95em;
+            color: #4a3b14;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .parcelamento-box small {
+            display: block;
+            color: #6a5d22;
+            line-height: 1.5;
         }
 
         .preco-original {
@@ -572,47 +571,6 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                     <?php endif; ?>
                 </div>
 
-                <!-- OPÇÕES DE CORES -->
-                <?php if (!empty($variantes)): ?>
-                <div class="opcoes-cores">
-                    <h4>Outras cores disponíveis</h4>
-                    <div class="swatches">
-                        <?php foreach ($variantes as $v): 
-                            $thumb = !empty($v['imagens_array']) ? $v['imagens_array'][0] : '';
-                            $color_label = htmlspecialchars($v['cor'] ?? '');
-                            $color_hex = htmlspecialchars($v['cor_hex'] ?? '');
-                            $data_images = htmlspecialchars(json_encode($v['imagens_array'] ?? []), ENT_QUOTES, 'UTF-8');
-                            $data_descr = htmlspecialchars($v['descricao'] ?? '', ENT_QUOTES, 'UTF-8');
-                        ?>
-                        <a class="swatch" href="#" 
-                           data-variant-id="<?php echo $v['id']; ?>" 
-                           data-nome="<?php echo htmlspecialchars($v['nome'], ENT_QUOTES); ?>" 
-                           data-preco="<?php echo $v['preco']; ?>" 
-                           data-preco-promocional="<?php echo $v['preco_promocional']; ?>" 
-                           data-em-promocao="<?php echo $v['em_promocao'] ? '1' : '0'; ?>" 
-                           data-marca="<?php echo htmlspecialchars($v['marca'], ENT_QUOTES); ?>" 
-                           data-modelo="<?php echo htmlspecialchars($v['modelo'], ENT_QUOTES); ?>" 
-                           data-sku="<?php echo htmlspecialchars($v['sku'], ENT_QUOTES); ?>" 
-                           data-images='<?php echo $data_images; ?>' 
-                           data-descricao='<?php echo $data_descr; ?>' 
-                           data-cor="<?php echo $color_label; ?>" 
-                           data-cor-hex="<?php echo $color_hex; ?>" 
-                           title="<?php echo $color_label; ?>">
-                            <?php if (!empty($color_hex)): ?>
-                                <span class="swatch-circle" style="background: <?php echo htmlspecialchars($color_hex); ?>;"></span>
-                            <?php elseif (!empty($thumb)): ?>
-                                <img src="<?php echo htmlspecialchars($thumb); ?>" 
-                                     alt="<?php echo $color_label; ?>"
-                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2242%22 height=%2242%22%3E%3Crect fill=%22%23ccc%22 width=%2242%22 height=%2242%22/%3E%3C/svg%3E'">
-                            <?php else: ?>
-                                <span class="swatch-circle" style="background:#ccc;"></span>
-                            <?php endif; ?>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-
                 <!-- DESCRIÇÃO -->
                 <div class="descricao-produto">
                     <h3>Descrição</h3>
@@ -643,16 +601,29 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
 
                 <!-- PREÇO -->
                 <div class="preco-box">
-                    <?php if ($produto['em_promocao']): ?>
-                        <div class="preco-original">R$ <?php echo formatar_preco($produto['preco']); ?></div>
-                        <div class="preco-promocional">R$ <?php echo formatar_preco($produto['preco_promocional']); ?></div>
-                        <div class="economia">
-                            💰 Economize R$ <?php echo formatar_preco($produto['preco'] - $produto['preco_promocional']); ?> 
-                            (<?php echo htmlspecialchars($produto['desconto_percentual']); ?>% OFF)
-                        </div>
-                    <?php else: ?>
-                        <div class="preco-atual">R$ <?php echo formatar_preco($produto['preco']); ?></div>
-                    <?php endif; ?>
+                    <div class="price-values" id="priceValues">
+                        <?php if ($produto['em_promocao']): ?>
+                            <div class="preco-original">R$ <?php echo formatar_preco($produto['preco']); ?></div>
+                            <div class="preco-promocional">R$ <?php echo formatar_preco($produto['preco_promocional']); ?></div>
+                            <div class="economia">
+                                💰 Economize R$ <?php echo formatar_preco($produto['preco'] - $produto['preco_promocional']); ?> 
+                                (<?php echo htmlspecialchars($produto['desconto_percentual']); ?>% OFF)
+                            </div>
+                        <?php else: ?>
+                            <div class="preco-atual">R$ <?php echo formatar_preco($produto['preco']); ?></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="parcelamento-box">
+                        <label for="parcelasSelect">Parcelamento em até</label>
+                        <select id="parcelasSelect">
+                            <?php for ($i = 1; $i <= 12; $i++): ?>
+                                <option value="<?php echo $i; ?>"><?php echo $i; ?>x</option>
+                            <?php endfor; ?>
+                        </select>
+                        <div class="parcelamento-valor" id="parcelamentoValor"></div>
+                        <div class="parcelamento-info" id="parcelamentoInfo"></div>
+                    </div>
                 </div>
 
                 <!-- BOTÃO ADICIONAR AO CARRINHO -->
@@ -685,34 +656,6 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                             <span class="spec-label">📦 Código (SKU)</span>
                             <span class="spec-value"><?php echo htmlspecialchars($produto['sku']); ?></span>
                         </div>
-                        
-                        <?php if ($produto['cor']): ?>
-                        <div class="spec-item">
-                            <span class="spec-label">🎨 Cor</span>
-                            <span class="spec-value"><?php echo htmlspecialchars($produto['cor']); ?></span>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($produto['material']): ?>
-                        <div class="spec-item">
-                            <span class="spec-label">📌 Material</span>
-                            <span class="spec-value"><?php echo htmlspecialchars($produto['material']); ?></span>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($produto['dimensoes']): ?>
-                        <div class="spec-item">
-                            <span class="spec-label">📐 Dimensões</span>
-                            <span class="spec-value"><?php echo htmlspecialchars($produto['dimensoes']); ?></span>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($produto['peso']): ?>
-                        <div class="spec-item">
-                            <span class="spec-label">⚖️ Peso</span>
-                            <span class="spec-value"><?php echo htmlspecialchars($produto['peso']); ?> kg</span>
-                        </div>
-                        <?php endif; ?>
                         
                         <div class="spec-item">
                             <span class="spec-label">📊 Estoque</span>
@@ -855,6 +798,34 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             sku: '<?php echo $produto['sku']; ?>'
         };
 
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor));
+        }
+
+        function calcularParcelamento(valor, parcelas) {
+            const preco = Number(valor);
+            if (parcelas <= 1) {
+                return preco;
+            }
+            return (preco * 1.15) / parcelas;
+        }
+
+        function atualizarParcelamento() {
+            const parcelasSelect = document.getElementById('parcelasSelect');
+            const parcelaValorEl = document.getElementById('parcelamentoValor');
+            const parcelamentoInfoEl = document.getElementById('parcelamentoInfo');
+            if (!parcelasSelect || !parcelaValorEl || !parcelamentoInfoEl) return;
+            const parcelas = parseInt(parcelasSelect.value, 10) || 1;
+            const totalAmostra = Number(currentVariant.preco || 0);
+            const valorParcela = calcularParcelamento(totalAmostra, parcelas);
+            parcelaValorEl.textContent = `${parcelas}x de ${formatarMoeda(valorParcela)}`;
+            if (parcelas === 1) {
+                parcelamentoInfoEl.textContent = 'Valor à vista: sem juros e com o custo normal do produto.';
+            } else {
+                parcelamentoInfoEl.textContent = 'Parcelas com acréscimo de até 15% sobre o valor à vista.';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.swatch').forEach(s => {
                 s.addEventListener('click', function(e) {
@@ -898,13 +869,13 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                     const marcaEl = document.querySelector('.produto-marca');
                     if (marcaEl) marcaEl.innerHTML = `<strong>Marca:</strong> ${marca} | <strong>Modelo:</strong> ${modelo}`;
                     
-                    const precoBox = document.querySelector('.preco-box');
-                    if (precoBox) {
+                    const priceValues = document.getElementById('priceValues');
+                    if (priceValues) {
                         const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v));
                         if (emProm) {
-                            precoBox.innerHTML = `<div class="preco-original">${fmt(preco)}</div><div class="preco-promocional">${fmt(precoProm)}</div>`;
+                            priceValues.innerHTML = `<div class="preco-original">${fmt(preco)}</div><div class="preco-promocional">${fmt(precoProm)}</div>`;
                         } else {
-                            precoBox.innerHTML = `<div class="preco-atual">${fmt(preco)}</div>`;
+                            priceValues.innerHTML = `<div class="preco-atual">${fmt(preco)}</div>`;
                         }
                     }
 
@@ -915,8 +886,16 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                     }
 
                     currentVariant = { id: parseInt(vid) || currentVariant.id, nome, preco: emProm ? precoProm : preco, preco_original: preco, imagem: images[0] || currentVariant.imagem, marca, modelo, sku };
+                    atualizarParcelamento();
                 });
             });
+
+            const parcelasSelect = document.getElementById('parcelasSelect');
+            if (parcelasSelect) {
+                parcelasSelect.addEventListener('change', atualizarParcelamento);
+            }
+
+            atualizarParcelamento();
         });
 
         function updateCartCount() {
