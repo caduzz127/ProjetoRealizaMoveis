@@ -51,20 +51,19 @@ try {
   <link rel="stylesheet" href="assets/css/cardsPromo.css">
   <link rel="stylesheet" href="style.css">
   <script src="assets/js/cliqueCards.js" defer></script>
-  <script src="assets/js/mostrarCards.js" defer></script>
 
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="styleClaude.css">
-  <link rel="stylesheet" href="carrossel.css">
   <link rel="stylesheet" href="menuLateral.css">
+  <link rel="stylesheet" href="carrossel.css">
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
 
 </head>
 
 <body>
   <button class="menu-button" id="menuToggleBtn" aria-label="Abrir menu">
-    <i class="fas fa-bars" style= "font-size: 20px;"></i>
+    <i class="fas fa-bars" style="font-size: 20px;"></i>
   </button>
 
   <!-- TOP BAR -->
@@ -113,12 +112,12 @@ try {
   <!-- CAROUSEL -->
   <div class="carousel" id="homepageCarousel" aria-label="Carrossel de banners">
     <div class="carousel-slides">
-      <div class="carousel-slide mobile"><img src="assets/imgs/img1.jpeg"></div>
       <div class="carousel-slide mobile"><img src="assets/imgs/img2.jpeg"></div>
+      <div class="carousel-slide mobile"><img src="assets/imgs/img1.jpeg"></div>
       <div class="carousel-slide mobile"><img src="assets/imgs/img3.jpeg"></div>
 
-      <div class="carousel-slide desktop"><img src="assets/imgs/banner1.png"></div>
       <div class="carousel-slide desktop"><img src="assets/imgs/banner2.png"></div>
+      <div class="carousel-slide desktop"><img src="assets/imgs/banner1.png"></div>
       <div class="carousel-slide desktop"><img src="assets/imgs/banner3.png"></div>
     </div>
     <div class="carousel-dots" id="carouselDots"></div>
@@ -131,7 +130,8 @@ try {
     </div>
 
     <form class="pesquisar-produtos-form" method="GET">
-      <input type="text" id="inputBusca" name="busca" placeholder="Ex: Sofá, Mesa, Cadeira..." value="<?= htmlspecialchars($busca) ?>" required>
+      <input type="text" id="inputBusca" name="busca" placeholder="Ex: Sofá, Mesa, Cadeira..."
+        value="<?= htmlspecialchars($busca) ?>" required>
 
       <button type="submit">
         <i class="fas fa-search"></i>
@@ -547,45 +547,51 @@ try {
 
       function atualizarSlides() {
         const isMobile = window.innerWidth <= 1024;
-
         const allSlides = Array.from(carousel.querySelectorAll('.carousel-slide'));
 
+        // Em vez de display: none, vamos remover o slide do fluxo ou apenas filtrar
         slides = allSlides.filter(slide => {
-          return isMobile
-            ? slide.classList.contains('mobile')
-            : slide.classList.contains('desktop');
+          const isSlideMobile = slide.classList.contains('mobile');
+          const isSlideDesktop = slide.classList.contains('desktop');
+
+          if (isMobile) {
+            // No mobile, esconde o que é só desktop
+            slide.style.display = isSlideMobile ? 'block' : 'none';
+            return isSlideMobile;
+          } else {
+            // No desktop, esconde o que é só mobile
+            slide.style.display = isSlideDesktop ? 'block' : 'none';
+            return isSlideDesktop;
+          }
         });
 
         total = slides.length;
         current = 0;
 
-        // mostra/esconde slides
-        allSlides.forEach(slide => {
-          slide.style.display = slides.includes(slide) ? 'block' : 'none';
-        });
-
-        // recria dots
+        // Limpa e recria os dots baseado nos slides ATIVOS
         dotsContainer.innerHTML = '';
         slides.forEach((_, i) => {
           const btn = document.createElement('button');
           if (i === 0) btn.classList.add('active');
-
           btn.addEventListener('click', () => {
             current = i;
             update();
             resetTimer();
           });
-
           dotsContainer.appendChild(btn);
         });
 
         update();
       }
 
+
       function update() {
         if (total === 0) return;
 
-        slidesEl.style.transform = `translateX(-${current * 100}%)`;
+        const activeSlide = slides[current];
+        const offset = activeSlide.offsetLeft;
+
+        slidesEl.style.transform = `translateX(-${offset}px)`;
 
         Array.from(dotsContainer.children).forEach((b, i) => {
           b.classList.toggle('active', i === current);
@@ -672,34 +678,72 @@ try {
   </script>
   <!-- MENU LATERAL -->
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const menuToggleBtn = document.getElementById('menuToggleBtn');
-    const homeSidebar = document.getElementById('homeSidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuToggleBtn = document.getElementById('menuToggleBtn');
+      const homeSidebar = document.getElementById('homeSidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
 
-    function openSidebar() {
-      homeSidebar?.classList.add('open');
-      sidebarOverlay?.classList.add('active');
-      // Adiciona a classe para esconder o botão de abrir
-      menuToggleBtn?.classList.add('hidden');
-    }
-
-    function closeSidebar() {
-      homeSidebar?.classList.remove('open');
-      sidebarOverlay?.classList.remove('active');
-      // Remove a classe para o botão de abrir voltar
-      menuToggleBtn?.classList.remove('hidden');
-    }
-
-    menuToggleBtn?.addEventListener('click', openSidebar);
-    sidebarCloseBtn?.addEventListener('click', closeSidebar);
-    sidebarOverlay?.addEventListener('click', closeSidebar);
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeSidebar();
+      function openSidebar() {
+        homeSidebar?.classList.add('open');
+        sidebarOverlay?.classList.add('active');
+        // Adiciona a classe para esconder o botão de abrir
+        menuToggleBtn?.classList.add('hidden');
       }
+
+      function closeSidebar() {
+        homeSidebar?.classList.remove('open');
+        sidebarOverlay?.classList.remove('active');
+        // Remove a classe para o botão de abrir voltar
+        menuToggleBtn?.classList.remove('hidden');
+      }
+
+      menuToggleBtn?.addEventListener('click', openSidebar);
+      sidebarCloseBtn?.addEventListener('click', closeSidebar);
+      sidebarOverlay?.addEventListener('click', closeSidebar);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeSidebar();
+        }
+      });
+
+      // Submenus
+      const sidebarItems = document.querySelectorAll('.sidebar-item[data-toggle]');
+
+      sidebarItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          const toggleId = item.getAttribute('data-toggle');
+          const submenu = document.getElementById(toggleId + '-submenu');
+
+          if (!submenu) return;
+
+          // Fecha outros submenus
+          document.querySelectorAll('.sidebar-submenu.open').forEach(menu => {
+            if (menu !== submenu) {
+              menu.classList.remove('open');
+              const correspondingItem = menu.previousElementSibling ||
+                document.querySelector(`[data-toggle="${menu.id.replace('-submenu', '')}"]`);
+              if (correspondingItem) {
+                correspondingItem.classList.remove('active');
+              }
+            }
+          });
+
+          // Toggle o submenu atual
+          submenu.classList.toggle('open');
+          item.classList.toggle('active');
+        });
+      });
+
+      // Fechas o menu ao clicar em um submenu
+      const submenuLinks = document.querySelectorAll('.sidebar-submenu li a');
+      submenuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          closeSidebar();
+        });
+      });
     });
 
     // Submenus
