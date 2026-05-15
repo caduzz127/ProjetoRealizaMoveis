@@ -822,7 +822,7 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             if (parcelas === 1) {
                 parcelamentoInfoEl.textContent = 'Valor à vista: sem juros e com o custo normal do produto.';
             } else {
-                parcelamentoInfoEl.textContent = 'Parcelas com acréscimo de até 15% sobre o valor à vista.';
+                parcelamentoInfoEl.textContent = 'Parcelas com acréscimo sobre o valor à vista.';
             }
         }
 
