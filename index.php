@@ -156,38 +156,17 @@ try {
 
         <nav class="home-sidebar-menu" aria-label="Menu lateral de categorias">
           <div class="sidebar-item-group">
-            <button class="sidebar-item" data-toggle="sofa">
-              <span><i class="fas fa-couch"></i><span class="item-name">Sofás</span></span>
+            <button class="sidebar-item" data-toggle="sala">
+              <span><i class="fas fa-couch"></i><span class="item-name">Sala</span></span>
               <i class="fas fa-chevron-down icon-chevron"></i>
             </button>
-            <ul class="sidebar-submenu" id="sofa-submenu">
-              <li><a href="produtos.php?categoria=sofa&tipo=sofá-2-lugares">Sofá 2 Lugares</a></li>
-              <li><a href="produtos.php?categoria=sofa&tipo=sofá-3-lugares">Sofá 3 Lugares</a></li>
-              <li><a href="produtos.php?categoria=sofa&tipo=sofá-retrátil">Sofá Retrátil</a></li>
-            </ul>
-          </div>
-
-          <div class="sidebar-item-group">
-            <button class="sidebar-item" data-toggle="sala-estar">
-              <span><i class="fas fa-tv"></i><span class="item-name">Sala de Estar</span></span>
-              <i class="fas fa-chevron-down icon-chevron"></i>
-            </button>
-            <ul class="sidebar-submenu" id="sala-estar-submenu">
-              <li><a href="produtos.php?categoria=Sala%20de%20Estar&tipo=rack">Racks</a></li>
-              <li><a href="produtos.php?categoria=Sala%20de%20Estar&tipo=mesa-centro">Mesa de Centro</a></li>
-              <li><a href="produtos.php?categoria=Sala%20de%20Estar&tipo=estantes">Estantes</a></li>
-            </ul>
-          </div>
-
-          <div class="sidebar-item-group">
-            <button class="sidebar-item" data-toggle="sala-jantar">
-              <span><i class="fas fa-utensils"></i><span class="item-name">Sala de Jantar</span></span>
-              <i class="fas fa-chevron-down icon-chevron"></i>
-            </button>
-            <ul class="sidebar-submenu" id="sala-jantar-submenu">
-              <li><a href="produtos.php?categoria=Sala%20de%20Jantar&tipo=mesa">Mesas</a></li>
-              <li><a href="produtos.php?categoria=Sala%20de%20Jantar&tipo=cadeira">Cadeiras</a></li>
-              <li><a href="produtos.php?categoria=Sala%20de%20Jantar&tipo=bancos">Bancos</a></li>
+            <ul class="sidebar-submenu" id="sala-submenu">
+              <li><a href="produtos.php?categoria=rack">Racks</a></li>
+              <li><a href="produtos.php?categoria=estante">Estantes</a></li>
+              <li><a href="produtos.php?categoria=sofa">Sofás</a></li>
+              <li><a href="produtos.php?categoria=mesa">Mesa</a></li>
+              <li><a href="produtos.php?categoria=cadeira">Cadeiras</a></li>
+              <li><a href="produtos.php?categoria=poltrona">Poltronas</a></li>
             </ul>
           </div>
 
@@ -197,9 +176,11 @@ try {
               <i class="fas fa-chevron-down icon-chevron"></i>
             </button>
             <ul class="sidebar-submenu" id="quarto-submenu">
-              <li><a href="produtos.php?categoria=Quarto&tipo=cama">Camas</a></li>
-              <li><a href="produtos.php?categoria=Quarto&tipo=guarda-roupa">Guarda-Roupas</a></li>
-              <li><a href="produtos.php?categoria=Quarto&tipo=criado">Criado Mudo</a></li>
+              <li><a href="produtos.php?categoria=cama">Camas</a></li>
+              <li><a href="produtos.php?categoria=guarda-roupa">Guarda-Roupas</a></li>
+              <li><a href="produtos.php?categoria=armario">Armários</a></li>
+              <li><a href="produtos.php?categoria=comoda">Cômodas</a></li>
+              <li><a href="produtos.php?categoria=criado">Criados</a></li>
             </ul>
           </div>
 
@@ -745,44 +726,6 @@ try {
         });
       });
     });
-
-    // Submenus
-    const sidebarItems = document.querySelectorAll('.sidebar-item[data-toggle]');
-    
-    sidebarItems.forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        const toggleId = item.getAttribute('data-toggle');
-        const submenu = document.getElementById(toggleId + '-submenu');
-        
-        if (!submenu) return;
-        
-        // Fecha outros submenus
-        document.querySelectorAll('.sidebar-submenu.open').forEach(menu => {
-          if (menu !== submenu) {
-            menu.classList.remove('open');
-            const correspondingItem = menu.previousElementSibling || 
-                                     document.querySelector(`[data-toggle="${menu.id.replace('-submenu', '')}"]`);
-            if (correspondingItem) {
-              correspondingItem.classList.remove('active');
-            }
-          }
-        });
-        
-        // Toggle o submenu atual
-        submenu.classList.toggle('open');
-        item.classList.toggle('active');
-      });
-    });
-
-    // Fechas o menu ao clicar em um submenu
-    const submenuLinks = document.querySelectorAll('.sidebar-submenu li a');
-    submenuLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        closeSidebar();
-      });
-    });
-  });
   </script>
 
   <!-- busca -->
