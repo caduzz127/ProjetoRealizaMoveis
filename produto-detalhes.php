@@ -108,8 +108,9 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($produto['nome']); ?> - Realiza Móveis</title>
     <link rel="icon" type="image/svg+xml" href="assets/imgs/logoModificada.svg">
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         .detalhes-container {
             max-width: 1400px;
@@ -323,6 +324,22 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             margin-bottom: 10px;
         }
 
+        .preco-parcelado-cheio {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .preco-vista {
+            font-size: 0.85em;
+            color: #555;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+            text-transform: lowercase;
+        }
+
         .preco-promocional {
             font-size: 3em;
             color: #E74C3C;
@@ -506,8 +523,8 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             </div>
             <div class="top-bar-item">
                 <i class="fas fa-phone"></i>
-                <a href="tel:+5521979771368">(21) 97977-1368</a>
-            </div>
+            <a href="tel:+5521979771368">(21) 97977-1368</a>
+      </div>
         </div>
     </div>
 
@@ -602,15 +619,16 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                 <!-- PREÇO -->
                 <div class="preco-box">
                     <div class="price-values" id="priceValues">
+                        <div class="preco-parcelado-cheio" id="precoParceladoCheio"></div>
                         <?php if ($produto['em_promocao']): ?>
                             <div class="preco-original">R$ <?php echo formatar_preco($produto['preco']); ?></div>
-                            <div class="preco-promocional">R$ <?php echo formatar_preco($produto['preco_promocional']); ?></div>
+                            <div class="preco-promocional">R$ <?php echo formatar_preco($produto['preco_promocional']); ?> <span class="preco-vista">à vista</span></div>
                             <div class="economia">
                                 💰 Economize R$ <?php echo formatar_preco($produto['preco'] - $produto['preco_promocional']); ?> 
                                 (<?php echo htmlspecialchars($produto['desconto_percentual']); ?>% OFF)
                             </div>
                         <?php else: ?>
-                            <div class="preco-atual">R$ <?php echo formatar_preco($produto['preco']); ?></div>
+                            <div class="preco-atual">R$ <?php echo formatar_preco($produto['preco']); ?> <span class="preco-vista">à vista</span></div>
                         <?php endif; ?>
                     </div>
 
@@ -814,15 +832,20 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
             const parcelasSelect = document.getElementById('parcelasSelect');
             const parcelaValorEl = document.getElementById('parcelamentoValor');
             const parcelamentoInfoEl = document.getElementById('parcelamentoInfo');
-            if (!parcelasSelect || !parcelaValorEl || !parcelamentoInfoEl) return;
+            const precoParceladoCheioEl = document.getElementById('precoParceladoCheio');
+            if (!parcelasSelect || !parcelaValorEl || !parcelamentoInfoEl || !precoParceladoCheioEl) return;
             const parcelas = parseInt(parcelasSelect.value, 10) || 1;
             const totalAmostra = Number(currentVariant.preco || 0);
             const valorParcela = calcularParcelamento(totalAmostra, parcelas);
-            parcelaValorEl.textContent = `${parcelas}x de ${formatarMoeda(valorParcela)}`;
+            const totalParcelado = parcelas * valorParcela;
             if (parcelas === 1) {
+                precoParceladoCheioEl.textContent = '';
+                parcelaValorEl.textContent = `À vista: ${formatarMoeda(valorParcela)}`;
                 parcelamentoInfoEl.textContent = 'Valor à vista: sem juros e com o custo normal do produto.';
             } else {
-                parcelamentoInfoEl.textContent = 'Parcelas com acréscimo sobre o valor à vista.';
+                precoParceladoCheioEl.textContent = `Valor total parcelado: ${formatarMoeda(totalParcelado)}`;
+                parcelaValorEl.textContent = `${parcelas}x de ${formatarMoeda(valorParcela)}`;
+                parcelamentoInfoEl.textContent = `Total das parcelas: ${formatarMoeda(totalParcelado)}.`;
             }
         }
 
@@ -873,9 +896,9 @@ $link_whatsapp = "https://wa.me/{$whatsapp_numero}?text={$mensagem_whatsapp}";
                     if (priceValues) {
                         const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v));
                         if (emProm) {
-                            priceValues.innerHTML = `<div class="preco-original">${fmt(preco)}</div><div class="preco-promocional">${fmt(precoProm)}</div>`;
+                            priceValues.innerHTML = `<div class="preco-parcelado-cheio" id="precoParceladoCheio"></div><div class="preco-original">${fmt(preco)}</div><div class="preco-promocional">${fmt(precoProm)} <span class="preco-vista">à vista</span></div>`;
                         } else {
-                            priceValues.innerHTML = `<div class="preco-atual">${fmt(preco)}</div>`;
+                            priceValues.innerHTML = `<div class="preco-parcelado-cheio" id="precoParceladoCheio"></div><div class="preco-atual">${fmt(preco)} <span class="preco-vista">à vista</span></div>`;
                         }
                     }
 

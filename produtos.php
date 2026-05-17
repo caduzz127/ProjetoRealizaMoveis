@@ -10,6 +10,7 @@ require_once 'config.php';
 // FILTROS
 // ============================================
 $categoria = isset($_GET['categoria']) ? trim($_GET['categoria']) : '';
+$tipo = isset($_GET['tipo']) ? trim($_GET['tipo']) : '';
 $marca = isset($_GET['marca']) ? trim($_GET['marca']) : '';
 $preco_min = isset($_GET['preco_min']) ? floatval($_GET['preco_min']) : '';
 $preco_max = isset($_GET['preco_max']) ? floatval($_GET['preco_max']) : '';
@@ -29,6 +30,11 @@ $params = [];
 if ($categoria) {
     $query .= " AND categoria ILIKE :categoria";
     $params[':categoria'] = "%$categoria%";
+}
+
+if ($tipo) {
+    $query .= " AND tipo ILIKE :tipo";
+    $params[':tipo'] = "%$tipo%";
 }
 
 if ($marca) {
@@ -67,6 +73,24 @@ if ($apenas_promocao) {
 
 if ($apenas_destaque) {
     $query .= " AND destaque = true";
+}
+
+// ============================================
+// TÍTULO DINÂMICO DE CATEGORIA
+$categoria_titulo = $categoria ? ucwords(str_replace(['-', '_'], ' ', $categoria)) : '';
+$tipo_titulo = $tipo ? ucwords(str_replace(['-', '_'], ' ', $tipo)) : '';
+$page_title = 'Produtos - Realiza Móveis';
+if ($categoria_titulo && $tipo_titulo) {
+    $page_title = "{$categoria_titulo} - {$tipo_titulo} - Realiza Móveis";
+} elseif ($categoria_titulo) {
+    $page_title = "{$categoria_titulo} - Realiza Móveis";
+}
+
+$page_heading = 'Nossos Produtos';
+if ($categoria_titulo && $tipo_titulo) {
+    $page_heading = "{$tipo_titulo} de {$categoria_titulo}";
+} elseif ($categoria_titulo) {
+    $page_heading = "Produtos de {$categoria_titulo}";
 }
 
 // ============================================
@@ -134,7 +158,7 @@ if (isset($_GET['ajax'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtos - Realiza Móveis</title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="icon" type="image/svg+xml" href="assets/imgs/logoModificada.svg">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -648,7 +672,7 @@ if (isset($_GET['ajax'])) {
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="content-area">
             <div class="produtos-header">
-                <h2>Nossos Produtos</h2>
+                <h2><?php echo htmlspecialchars($page_heading); ?></h2>
                 <span class="resultado-count">
                     <?php echo count($produtos); ?> produto(s) encontrado(s)
                 </span>
