@@ -161,12 +161,21 @@ try {
               <i class="fas fa-chevron-down icon-chevron"></i>
             </button>
             <ul class="sidebar-submenu" id="sala-submenu">
+<<<<<<< HEAD
               <li><a href="rack-estantes.php">Racks</a></li>
               <li><a href="rack-estantes.php">Estantes</a></li>
               <li><a href="sofa.php">Sofás</a></li>
               <li><a href="mesa.php">Mesa</a></li>
               <li><a href="cadeira.php">Cadeiras</a></li>
               <li><a href="poltrona.php">Poltronas</a></li>
+=======
+              <li><a href="produtos.php?categoria=rack">Racks</a></li>
+              <li><a href="produtos.php?categoria=estante">Estantes</a></li>
+              <li><a href="produtos.php?categoria=sofa">Sofás</a></li>
+              <li><a href="produtos.php?categoria=mesa">Mesa</a></li>
+              <li><a href="produtos.php?categoria=cadeira">Cadeiras</a></li>
+              <li><a href="produtos.php?categoria=poltrona">Poltronas</a></li>
+>>>>>>> 462cf72c035139a4d0699aefe6de23c2686d38d3
             </ul>
           </div>
 
@@ -177,9 +186,15 @@ try {
             </button>
             <ul class="sidebar-submenu" id="quarto-submenu">
               <li><a href="produtos.php?categoria=cama">Camas</a></li>
+<<<<<<< HEAD
               <li><a href="guarda-roupa.php">Guarda-Roupas</a></li>
               <li><a href="armario.php">Armários</a></li>
               <li><a href="comoda.php">Cômodas</a></li>
+=======
+              <li><a href="produtos.php?categoria=guarda-roupa">Guarda-Roupas</a></li>
+              <li><a href="produtos.php?categoria=armario">Armários</a></li>
+              <li><a href="produtos.php?categoria=comoda">Cômodas</a></li>
+>>>>>>> 462cf72c035139a4d0699aefe6de23c2686d38d3
               <li><a href="produtos.php?categoria=criado">Criados</a></li>
             </ul>
           </div>
