@@ -10,12 +10,9 @@ require_once 'config.php';
 // FILTROS
 // ============================================
 $categoria = isset($_GET['categoria']) ? trim($_GET['categoria']) : '';
-$tipo = isset($_GET['tipo']) ? trim($_GET['tipo']) : '';
 $marca = isset($_GET['marca']) ? trim($_GET['marca']) : '';
 $preco_min = isset($_GET['preco_min']) ? floatval($_GET['preco_min']) : '';
 $preco_max = isset($_GET['preco_max']) ? floatval($_GET['preco_max']) : '';
-$cor = isset($_GET['cor']) ? trim($_GET['cor']) : '';
-$material = isset($_GET['material']) ? trim($_GET['material']) : '';
 $busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
 $ordenar = isset($_GET['ordenar']) ? $_GET['ordenar'] : 'destaque';
 $apenas_promocao = isset($_GET['apenas_promocao']) ? true : false;
@@ -32,11 +29,6 @@ if ($categoria) {
     $params[':categoria'] = "%$categoria%";
 }
 
-if ($tipo) {
-    $query .= " AND tipo ILIKE :tipo";
-    $params[':tipo'] = "%$tipo%";
-}
-
 if ($marca) {
     $query .= " AND marca ILIKE :marca";
     $params[':marca'] = "%$marca%";
@@ -50,16 +42,6 @@ if ($preco_min) {
 if ($preco_max) {
     $query .= " AND (CASE WHEN em_promocao THEN preco_promocional ELSE preco END) <= :preco_max";
     $params[':preco_max'] = $preco_max;
-}
-
-if ($cor) {
-    $query .= " AND cor ILIKE :cor";
-    $params[':cor'] = "%$cor%";
-}
-
-if ($material) {
-    $query .= " AND material ILIKE :material";
-    $params[':material'] = "%$material%";
 }
 
 if ($busca) {
@@ -78,18 +60,13 @@ if ($apenas_destaque) {
 // ============================================
 // TÍTULO DINÂMICO DE CATEGORIA
 $categoria_titulo = $categoria ? ucwords(str_replace(['-', '_'], ' ', $categoria)) : '';
-$tipo_titulo = $tipo ? ucwords(str_replace(['-', '_'], ' ', $tipo)) : '';
 $page_title = 'Produtos - Realiza Móveis';
-if ($categoria_titulo && $tipo_titulo) {
-    $page_title = "{$categoria_titulo} - {$tipo_titulo} - Realiza Móveis";
-} elseif ($categoria_titulo) {
+if ($categoria_titulo) {
     $page_title = "{$categoria_titulo} - Realiza Móveis";
 }
 
 $page_heading = 'Nossos Produtos';
-if ($categoria_titulo && $tipo_titulo) {
-    $page_heading = "{$tipo_titulo} de {$categoria_titulo}";
-} elseif ($categoria_titulo) {
+if ($categoria_titulo) {
     $page_heading = "Produtos de {$categoria_titulo}";
 }
 
@@ -134,12 +111,10 @@ try {
 // ============================================
 try {
     $categorias = $pdo->query("SELECT DISTINCT categoria FROM produtos WHERE status = 'ativo' ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
-    $marcas = $pdo->query("SELECT DISTINCT marca FROM produtos WHERE status = 'ativo' ORDER BY marca")->fetchAll(PDO::FETCH_COLUMN);
-    $cores = $pdo->query("SELECT DISTINCT cor FROM produtos WHERE status = 'ativo' AND cor IS NOT NULL AND cor != '' ORDER BY cor")->fetchAll(PDO::FETCH_COLUMN);
-    $materiais = $pdo->query("SELECT DISTINCT material FROM produtos WHERE status = 'ativo' AND material IS NOT NULL AND material != '' ORDER BY material")->fetchAll(PDO::FETCH_COLUMN);
+    $marcas = $pdo->query("SELECT MIN(marca) as marca FROM produtos WHERE status = 'ativo' AND marca IS NOT NULL AND marca != '' GROUP BY LOWER(TRIM(marca)) ORDER BY MIN(marca)")->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $e) {
     error_log("Erro ao buscar filtros: " . $e->getMessage());
-    $categorias = $marcas = $cores = $materiais = [];
+    $categorias = $marcas = [];
 }
 
 // ============================================
@@ -577,50 +552,6 @@ if (isset($_GET['ajax'])) {
                             </div>
                         </div>
                     </div>
-
-                    <?php if (!empty($cores)): ?>
-                    <div class="filter-block">
-                        <button type="button" class="accordion active">
-                            <span><i class="fas fa-palette"></i> Cor</span>
-                            <i class="fas fa-chevron-down accordion-icon"></i>
-                        </button>
-                        <div class="panel show">
-                            <div class="filtro-group">
-                                <select name="cor" onchange="this.form.submit()">
-                                    <option value="">Todas as Cores</option>
-                                    <?php foreach ($cores as $c): ?>
-                                        <option value="<?php echo htmlspecialchars($c); ?>" 
-                                            <?php echo $cor == $c ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($c); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($materiais)): ?>
-                    <div class="filter-block">
-                        <button type="button" class="accordion active">
-                            <span><i class="fas fa-leaf"></i> Material</span>
-                            <i class="fas fa-chevron-down accordion-icon"></i>
-                        </button>
-                        <div class="panel show">
-                            <div class="filtro-group">
-                                <select name="material" onchange="this.form.submit()">
-                                    <option value="">Todos os Materiais</option>
-                                    <?php foreach ($materiais as $mat): ?>
-                                        <option value="<?php echo htmlspecialchars($mat); ?>" 
-                                            <?php echo $material == $mat ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($mat); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
 
                     <div class="filter-block">
                         <button type="button" class="accordion active">

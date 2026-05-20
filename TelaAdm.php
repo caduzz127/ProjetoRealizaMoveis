@@ -200,105 +200,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $params[':id'] = $_POST['produto_id'];
                 $stmt->execute($params);
             } else {
-                // Cadastro: suportar múltiplas cores/variantes enviadas em cores[]
-                if (isset($_POST['cores']) && is_array($_POST['cores']) && count($_POST['cores']) > 0) {
-                    
-                    $coresPost = $_POST['cores'];
-                    $filesCores = isset($_FILES['cores']) ? $_FILES['cores'] : null;
-
-                    // Primeiro, inserir a cor principal
-                    $insertStmt = $pdo->prepare($insertSql);
-
-                    $main_cor = isset($_POST['cor']) ? $_POST['cor'] : '';
-                    $main_cor_hex = isset($_POST['cor_hex']) ? $_POST['cor_hex'] : '';
-                    $baseSku = isset($_POST['sku']) ? $_POST['sku'] : 'SKU';
-                    $sufmain = preg_replace('/[^A-Za-z0-9]/', '', strtoupper(substr($main_cor,0,6)));
-                    $candidateMain = $baseSku . '-' . ($sufmain ?: uniqid());
-                    $counterMain = 1;
-                    
-                    while ($pdo->query("SELECT 1 FROM produtos WHERE sku = '" . addslashes($candidateMain) . "'")->fetch()) {
-                        $candidateMain = $baseSku . '-' . ($sufmain ?: 'M') . $counterMain;
-                        $counterMain++;
-                    }
-                    
-                    $paramsMain = $params; // Copia os parâmetros originais
-                    $paramsMain[':sku'] = $candidateMain;
-                    $paramsMain[':cor'] = $main_cor;
-                    $paramsMain[':cor_hex'] = $main_cor_hex;
-                    
-                    $insertStmt->execute($paramsMain);
-
-                    foreach ($coresPost as $i => $coreData) {
-                        $cor_val = isset($coreData['cor']) ? $coreData['cor'] : '';
-                        $cor_hex_val = isset($coreData['cor-hex']) ? $coreData['cor-hex'] : '';
-
-                        // Upload principal da variante para o Supabase
-                        $var_img_principal = null;
-                        if ($filesCores && isset($filesCores['error'][$i]['imagem']) && $filesCores['error'][$i]['imagem'] === 0) {
-                            $origName = $filesCores['name'][$i]['imagem'];
-                            $tmpName = $filesCores['tmp_name'][$i]['imagem'];
-                            $mime = $filesCores['type'][$i]['imagem'];
-                            $filename = uniqid() . '_' . $origName;
-                            
-                            $publicUrl = uploadToSupabase($tmpName, $filename, $mime);
-                            if ($publicUrl) $var_img_principal = $publicUrl;
-                        }
-
-                        // Upload imagens secundárias da variante para o Supabase
-                        $var_imagens_sec = [];
-                        if ($filesCores && isset($filesCores['name'][$i]['imagens_secundarias']) && is_array($filesCores['name'][$i]['imagens_secundarias'])) {
-                            foreach ($filesCores['name'][$i]['imagens_secundarias'] as $k => $nameSec) {
-                                if ($filesCores['error'][$i]['imagens_secundarias'][$k] === 0) {
-                                    $tmp = $filesCores['tmp_name'][$i]['imagens_secundarias'][$k];
-                                    $mime = $filesCores['type'][$i]['imagens_secundarias'][$k];
-                                    $filename = uniqid() . '_' . $nameSec;
-                                    
-                                    $publicUrl = uploadToSupabase($tmp, $filename, $mime);
-                                    if ($publicUrl) $var_imagens_sec[] = $publicUrl;
-                                }
-                            }
-                        }
-
-                        // SKU variante
-                        $suf = preg_replace('/[^A-Za-z0-9]/', '', strtoupper(substr($cor_val,0,6)));
-                        $candidate = $baseSku . '-' . ($suf ?: uniqid());
-                        $counter = 1;
-                        while ($pdo->query("SELECT 1 FROM produtos WHERE sku = '" . addslashes($candidate) . "'")->fetch()) {
-                            $candidate = $baseSku . '-' . ($suf ?: 'V') . $counter;
-                            $counter++;
-                        }
-
-                        $paramsVar = [
-                            ':nome' => $_POST['nome'],
-                            ':descricao' => $_POST['descricao'],
-                            ':categoria' => $_POST['categoria'],
-                            ':marca' => $_POST['marca'],
-                            ':modelo' => $_POST['modelo'],
-                            ':cor' => $cor_val,
-                            ':cor_hex' => $cor_hex_val,
-                            ':material' => $_POST['material'] ?? '',
-                            ':dimensoes' => $_POST['dimensoes'] ?? '',
-                            ':peso' => $_POST['peso'] ?? '',
-                            ':preco' => $preco,
-                            ':preco_promocional' => $preco_promocional,
-                            ':em_promocao' => $em_promocao,
-                            ':desconto_percentual' => $desconto,
-                            ':estoque' => $_POST['estoque'],
-                            ':estoque_minimo' => $_POST['estoque_minimo'],
-                            ':sku' => $candidate,
-                            ':imagem_principal' => $var_img_principal,
-                            ':imagem_secundarias' => json_encode($var_imagens_sec),
-                            ':status' => $_POST['status'],
-                            ':destaque' => $destaque
-                        ];
-
-                        $insertStmt->execute($paramsVar);
-                    }
-
-                } else {
-                    $stmt = $pdo->prepare($insertSql);
-                    $stmt->execute($params);
-                }
+                $stmt = $pdo->prepare($insertSql);
+                $stmt->execute($params);
             }
 
             $_SESSION['feedback'] = [
@@ -362,7 +265,7 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/css/cardsPromo.css">
     <script>const produtoEdicao = <?php echo json_encode($produto_edicao); ?>;</script>
-    <script src="assets/js/cores.js" defer></script>
+
     <script>
         // Pré-visualização de imagens no formulário
         document.addEventListener('DOMContentLoaded', function(){
@@ -852,6 +755,12 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
     <header>
         <img src="assets/imgs/LogoAchatada.svg" class="logo" alt="Logo Realiza Móveis">
     </header>
+    <nav>
+        <a href="index.php" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+    </nav>
 
     <!-- Container Administrativo -->
     <div class="admin-container">
@@ -896,7 +805,8 @@ $produtos = $pdo->query("SELECT * FROM produtos ORDER BY data_cadastro DESC")->f
                             <option value="mesa" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'mesa') ? 'selected' : ''; ?>>Mesa</option>
                             <option value="cadeira" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'cadeira') ? 'selected' : ''; ?>>Cadeira</option>
                             <option value="rack" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'rack') ? 'selected' : ''; ?>>Rack</option>
-                            <option value="estante" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'estante') ? 'selected' : ''; ?>>Estante</option>
+                            <option value="home" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'home') ? 'selected' : ''; ?>>Home</option>
+                            <option value="painel" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'painel') ? 'selected' : ''; ?>>Painel</option>
                             <option value="poltrona" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'poltrona') ? 'selected' : ''; ?>>Poltrona</option>
                             <option value="armario" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'armario') ? 'selected' : ''; ?>>Armário</option>
                             <option value="comoda" <?php echo ($produto_edicao && $produto_edicao['categoria'] == 'comoda') ? 'selected' : ''; ?>>Cômoda</option>

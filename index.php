@@ -93,6 +93,8 @@ try {
     </div>
   </header>
 
+  
+
   <!-- NAVIGATION -->
   <nav>
     <a href="index.php" class="nav-link active">
@@ -124,24 +126,212 @@ try {
   </div>
 
   <!-- PESQUISAR PRODUTOS -->
-  <div class="pesquisar-produtos">
-    <div class="pesquisar-produtos-header">
-      <h2>Digite o nome do produto:</h2>
+  <!-- PESQUISA -->
+  <div class="search-section">
+    <div class="search-section__inner">
+      <p class="search-section__eyebrow">Encontre seu móvel ideal</p>
+      <h2 class="search-section__title">O que você está <span>procurando?</span></h2>
+      <form class="search-section__form" method="GET" action="index.php">
+        <div class="search-section__field">
+          <i class="fas fa-search search-section__icon"></i>
+          <input
+            type="text"
+            id="inputBusca"
+            name="busca"
+            placeholder="Sofá, Mesa, Guarda-roupa..."
+            value="<?= htmlspecialchars($busca) ?>"
+            autocomplete="off"
+          >
+          <?php if ($busca): ?>
+            <button type="button" class="search-section__clear" onclick="limparBusca()" title="Limpar busca">
+              <i class="fas fa-times"></i>
+            </button>
+          <?php endif; ?>
+        </div>
+        <button type="submit" class="search-section__btn">
+          <i class="fas fa-search"></i>
+          <span>Buscar</span>
+        </button>
+      </form>
+      <div class="search-section__tags">
+        <span>Sugestões:</span>
+        <a href="?busca=Sofá">Sofá</a>
+        <a href="?busca=Mesa">Mesa</a>
+        <a href="?busca=Guarda-roupa">Guarda-roupa</a>
+        <a href="?busca=Cadeira">Cadeira</a>
+        <a href="?busca=Rack">Rack</a>
+      </div>
     </div>
-
-    <form class="pesquisar-produtos-form" method="GET">
-      <input type="text" id="inputBusca" name="busca" placeholder="Ex: Sofá, Mesa, Cadeira..."
-        value="<?= htmlspecialchars($busca) ?>" required>
-
-      <button type="submit">
-        <i class="fas fa-search"></i>
-      </button>
-
-      <button type="button" onclick="limparBusca()" class="btn-limpar" style="background-color: red;">
-        X
-      </button>
-    </form>
   </div>
+
+  <style>
+    .search-section {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      padding: 56px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .search-section::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: rgba(212,175,55,0.07);
+      pointer-events: none;
+    }
+    .search-section::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -40px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: rgba(212,175,55,0.05);
+      pointer-events: none;
+    }
+    .search-section__inner {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    .search-section__eyebrow {
+      font-size: .72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #d4af37;
+      font-weight: 600;
+      margin-bottom: .6rem;
+    }
+    .search-section__title {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2rem;
+      line-height: 1.2;
+    }
+    .search-section__title span { color: #d4af37; }
+
+    .search-section__form {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      justify-content: center;
+      flex-wrap: nowrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .search-section__field {
+      position: relative;
+      flex: 1 1 0%;
+      min-width: 0;
+      width: 100%;
+    }
+    .search-section__field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 16px 48px 16px 46px;
+      border: 2px solid rgba(212,175,55,0.3);
+      border-radius: 14px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      outline: none;
+      transition: all .3s ease;
+      font-family: inherit;
+      display: block;
+    }
+    .search-section__icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #d4af37;
+      font-size: .95rem;
+      pointer-events: none;
+    }
+    .search-section__field input::placeholder { color: rgba(255,255,255,0.35); }
+    .search-section__field input:focus {
+      border-color: #d4af37;
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 0 0 4px rgba(212,175,55,0.12);
+    }
+    .search-section__clear {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: rgba(255,255,255,0.5);
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      transition: all .2s;
+    }
+    .search-section__clear:hover {
+      background: rgba(212,175,55,0.25);
+      color: #d4af37;
+    }
+    .search-section__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 22px;
+      width: auto;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #d4af37 0%, #a8891d 100%);
+      color: #1a1a1a;
+      border: none;
+      border-radius: 14px;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .3s ease;
+      white-space: nowrap;
+      letter-spacing: .5px;
+    }
+    .search-section__btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(212,175,55,0.35);
+      background: linear-gradient(135deg, #e0bc45 0%, #b8941f 100%);
+    }
+    .search-section__tags {
+      margin-top: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .search-section__tags span {
+      font-size: .78rem;
+      color: rgba(255,255,255,.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .search-section__tags a {
+      font-size: .8rem;
+      color: rgba(255,255,255,.65);
+      text-decoration: none;
+      padding: 4px 12px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 20px;
+      transition: all .25s;
+    }
+    .search-section__tags a:hover {
+      border-color: #d4af37;
+      color: #d4af37;
+      background: rgba(212,175,55,.08);
+    }
+    @media (max-width: 600px) {
+      .search-section { padding: 40px 16px; }
+      .search-section__btn { padding: 16px 16px; }
+    }
+  </style>
 
   <div class="home-layout">
     <aside class="home-sidebar" id="homeSidebar">
@@ -155,27 +345,20 @@ try {
         </div>
 
         <nav class="home-sidebar-menu" aria-label="Menu lateral de categorias">
+
           <div class="sidebar-item-group">
             <button class="sidebar-item" data-toggle="sala">
               <span><i class="fas fa-couch"></i><span class="item-name">Sala</span></span>
               <i class="fas fa-chevron-down icon-chevron"></i>
             </button>
             <ul class="sidebar-submenu" id="sala-submenu">
-<<<<<<< HEAD
+              <li><a href="produtos.php?categoria=home">Home</a></li>
               <li><a href="rack-estantes.php">Racks</a></li>
-              <li><a href="rack-estantes.php">Estantes</a></li>
+              <li><a href="produtos.php?categoria=painel">Painel</a></li>
               <li><a href="sofa.php">Sofás</a></li>
               <li><a href="mesa.php">Mesa</a></li>
               <li><a href="cadeira.php">Cadeiras</a></li>
               <li><a href="poltrona.php">Poltronas</a></li>
-=======
-              <li><a href="produtos.php?categoria=rack">Racks</a></li>
-              <li><a href="produtos.php?categoria=estante">Estantes</a></li>
-              <li><a href="produtos.php?categoria=sofa">Sofás</a></li>
-              <li><a href="produtos.php?categoria=mesa">Mesa</a></li>
-              <li><a href="produtos.php?categoria=cadeira">Cadeiras</a></li>
-              <li><a href="produtos.php?categoria=poltrona">Poltronas</a></li>
->>>>>>> 462cf72c035139a4d0699aefe6de23c2686d38d3
             </ul>
           </div>
 
@@ -186,15 +369,9 @@ try {
             </button>
             <ul class="sidebar-submenu" id="quarto-submenu">
               <li><a href="produtos.php?categoria=cama">Camas</a></li>
-<<<<<<< HEAD
               <li><a href="guarda-roupa.php">Guarda-Roupas</a></li>
               <li><a href="armario.php">Armários</a></li>
               <li><a href="comoda.php">Cômodas</a></li>
-=======
-              <li><a href="produtos.php?categoria=guarda-roupa">Guarda-Roupas</a></li>
-              <li><a href="produtos.php?categoria=armario">Armários</a></li>
-              <li><a href="produtos.php?categoria=comoda">Cômodas</a></li>
->>>>>>> 462cf72c035139a4d0699aefe6de23c2686d38d3
               <li><a href="produtos.php?categoria=criado">Criados</a></li>
             </ul>
           </div>
